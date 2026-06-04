@@ -1,4 +1,4 @@
-# FastAPI + PostgreSQL (Supabase-ready) Starter
+# FastAPI + PostgreSQL
 
 This is a minimal FastAPI starter wired for PostgreSQL using SQLAlchemy 2.x async engine (`asyncpg`). It treats Supabase purely as a hosted PostgreSQL database via a standard connection string — no Supabase SDK required.
 
@@ -79,5 +79,3 @@ app/
   main.py                # FastAPI app and routes
 ```
 
-## Migrations
-This starter creates tables automatically on startup for convenience. For production, add Alembic and manage migrations explicitly.
