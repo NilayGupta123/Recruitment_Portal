@@ -5,7 +5,7 @@ from fastapi import FastAPI
 from sqlalchemy import text
 
 from app.core.config import settings
-from app.db.session import engine
+from app.db.session import engine   
 from app.routers import users
 
 app = FastAPI(title=settings.app_name, debug=settings.debug)
