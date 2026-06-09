@@ -18,6 +18,7 @@ class ReadJob(JobBase):
     id: int
     posted_by: int
     created_at: datetime
+    updated_at: datetime | None = None
 
     class Config:
         from_attributes = True
