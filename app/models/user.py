@@ -19,9 +19,38 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[int] = mapped_column(primary_key=True, index=True)
-    email: Mapped[str] = mapped_column(String(255), unique=True, index=True)
-    full_name: Mapped[str | None] = mapped_column(String(255), nullable=True)
-    user_type: Mapped[UserType] = mapped_column(
-        SAEnum(UserType, name="user_type"), server_default="APPLICANT", nullable=False
+
+    full_name: Mapped[str] = mapped_column(
+        String(100),
+        nullable=False
     )
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now(), nullable=False)
+
+    email: Mapped[str] = mapped_column(
+        String(255),
+        unique=True,
+        index=True,
+        nullable=False
+    )
+
+    phone_number: Mapped[str | None] = mapped_column(
+        String(20),
+        nullable=True
+    )
+
+    user_type: Mapped[UserType] = mapped_column(
+        SAEnum(UserType, name="user_type"),
+        nullable=False,
+        server_default="APPLICANT"
+    )
+
+    created_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        server_default=func.now(),
+        nullable=False
+    )
+
+    updated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        onupdate=func.now(),
+        nullable=True
+    )
