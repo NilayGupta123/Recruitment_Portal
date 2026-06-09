@@ -9,10 +9,11 @@ class UserBase(BaseModel):
     email: EmailStr
     full_name: str | None = None
     user_type: UserType = UserType.APPLICANT
+    phone_number: str | None = None
 
 
 class UserCreate(UserBase):
-    pass
+    password: str
 
 
 class UserRead(UserBase):
@@ -21,3 +22,14 @@ class UserRead(UserBase):
 
     class Config:
         from_attributes = True
+
+class UserUpdate(UserBase):
+    pass
+
+
+class UserPasswordReset(BaseModel):
+    new_password: str
+    model_password: str
+
+
+
