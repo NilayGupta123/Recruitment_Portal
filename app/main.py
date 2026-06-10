@@ -6,6 +6,7 @@ from sqlalchemy import text
 
 from app.core.config import settings
 from app.db.session import engine   
+from app.models.file import File
 from app.routers import users
 from app.routers import auth
 from app.routers import jobs
@@ -47,4 +48,3 @@ app.include_router(skill.router)
 app.include_router(campaign.router)
 app.include_router(applicant_detail.router)
 app.include_router(applicant.router)
-
