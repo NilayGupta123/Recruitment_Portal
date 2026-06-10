@@ -7,6 +7,12 @@ from sqlalchemy import text
 from app.core.config import settings
 from app.db.session import engine   
 from app.routers import users
+from app.routers import auth
+from app.routers import jobs
+from app.routers import skill
+from app.routers import campaign
+from app.routers import applicant_detail
+from app.routers import applicant
 
 app = FastAPI(title=settings.app_name, debug=settings.debug)
 
@@ -35,3 +41,10 @@ async def db_check():
 
 
 app.include_router(users.router)
+app.include_router(auth.router)
+app.include_router(jobs.router)
+app.include_router(skill.router)
+app.include_router(campaign.router)
+app.include_router(applicant_detail.router)
+app.include_router(applicant.router)
+
