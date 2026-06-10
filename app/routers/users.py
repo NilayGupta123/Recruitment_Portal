@@ -22,7 +22,11 @@ async def list_users(db: AsyncSession = Depends(get_db), current_user: User = De
 
 
 @router.post("/create", response_model=UserRead, status_code=status.HTTP_201_CREATED)
-async def create_user(payload: UserCreate, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> UserRead:
+async def create_user(
+    payload: UserCreate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user)
+) -> UserRead:
     # hashed = get_password_hash(payload.password)
     user = User(email=payload.email, full_name=payload.full_name, user_type=payload.user_type, password=payload.password, phone_number=payload.phone_number)
     db.add(user)

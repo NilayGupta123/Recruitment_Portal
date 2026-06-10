@@ -61,9 +61,11 @@ async def login(
 	result = await db.execute(select(User).where(User.email == payload.email))
 	user = result.scalar_one_or_none()
 	
-	if not user or not verify_password(payload.password, user.password):
-		raise HTTPException(status_code=400, detail="Invalid credentials")
+	if not user:
+		raise HTTPException(status_code=400, detail="Invalid Email")
 	
+	if not verify_password(payload.password, user.password):
+		raise HTTPException(status_code=400, detail="Invalid credentials")
 
 	token = await create_access_token({"user_id": str(user.id), "email": user.email})
 	return {"access_token": token, "token_type": "bearer"}

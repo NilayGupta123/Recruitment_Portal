@@ -7,7 +7,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from Recruitment_Portal.app.models.skill import Skill
+from app.models.skill import Skill
 from app.db.session import get_db
 from app.models.job import Job
 from app.routers.auth import get_current_user
