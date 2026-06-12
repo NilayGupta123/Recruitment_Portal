@@ -33,4 +33,10 @@ class UserPasswordReset(BaseModel):
     model_password: str
 
 
+class UserPartialUpdate(BaseModel):
+    email: EmailStr | None = None
+    full_name: str | None = None
+    phone_number: str | None = None
+
+
 
