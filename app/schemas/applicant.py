@@ -1,19 +1,19 @@
 from datetime import datetime
 from pydantic import BaseModel
 
-from app.schemas.user import UserCreate, UserRead
+from app.schemas.user import CreateUser, ReadUser
 from app.schemas.applicant_detail import CreateApplicantDetail, ReadApplicantDetail
 
-class ApplicantBase(BaseModel):
+class BaseApplicant(BaseModel):
     status: str = "APPLIED"
 
 
-class CreateApplicant(ApplicantBase, UserCreate, CreateApplicantDetail):
+class CreateApplicant(BaseApplicant, CreateUser, CreateApplicantDetail):
     job_id: int
 
 
 # Minimal read model that matches the applicants table only
-class ReadApplicantCore(ApplicantBase):
+class ReadApplicantCore(BaseApplicant):
     id: int
     job_id: int
     applicant_id: int
@@ -27,7 +27,7 @@ class ReadApplicantCore(ApplicantBase):
 # Kept for future use if a joined/nested response is desired.
 # Note: This flattened model mixes fields from User and ApplicantDetail and
 # can be ambiguous; prefer nested models if you plan to expose joined data.
-class ReadApplicant(ApplicantBase, UserRead, ReadApplicantDetail):
+class ReadApplicant(BaseApplicant, ReadUser, ReadApplicantDetail):
     id: int
     job_id: int
     applicant_id: int
@@ -38,5 +38,8 @@ class ReadApplicant(ApplicantBase, UserRead, ReadApplicantDetail):
         from_attributes = True
 
 
-class UpdateApplicant(ApplicantBase):
+class UpdateApplicant(BaseApplicant):
     pass
+
+class PartialUpdateApplicant(BaseModel):
+    status: str | None = None

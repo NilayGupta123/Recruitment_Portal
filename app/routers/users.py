@@ -10,23 +10,23 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.models.user import User
 from app.routers.auth import get_current_user
-from app.schemas.user import UserCreate, UserRead, UserUpdate, UserPartialUpdate
+from app.schemas.user import CreateUser, ReadUser, UpdateUser, PartialUpdateUser
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
-@router.get("/list", response_model=List[UserRead])
-async def list_users(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> List[UserRead]:
+@router.get("/list", response_model=List[ReadUser])
+async def list_users(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> List[ReadUser]:
     result = await db.execute(select(User).order_by(User.id))
     return list(result.scalars().all())
 
 
-@router.post("/create", response_model=UserRead, status_code=status.HTTP_201_CREATED)
+@router.post("/create", response_model=ReadUser, status_code=status.HTTP_201_CREATED)
 async def create_user(
-    payload: UserCreate,
+    payload: CreateUser,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
-) -> UserRead:
+) -> ReadUser:
     # hashed = get_password_hash(payload.password)
     user = User(email=payload.email, full_name=payload.full_name, user_type=payload.user_type, password=payload.password, phone_number=payload.phone_number)
     db.add(user)
@@ -39,12 +39,8 @@ async def create_user(
     return user
 
 
-@router.get("/{user_id}", response_model=UserRead)
-async def get_user(
-    user_id: int,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_user)
-) -> UserRead:
+@router.get("/get/{user_id}", response_model=ReadUser)
+async def get_user(user_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> ReadUser:
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
@@ -52,13 +48,13 @@ async def get_user(
     return user
 
 
-@router.put("/{user_id}", response_model=UserRead)
+@router.put("/put/{user_id}", response_model=ReadUser)
 async def update_user(
     user_id: int,
-    payload: UserUpdate,
+    payload: UpdateUser,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
-) -> UserRead:
+) -> ReadUser:
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:
@@ -77,13 +73,13 @@ async def update_user(
     return user
 
 
-@router.patch("/{user_id}", response_model=UserRead)
+@router.patch("/patch/{user_id}", response_model=ReadUser)
 async def patch_user(
     user_id: int,
-    payload: UserPartialUpdate,
+    payload: PartialUpdateUser,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user)
-) -> UserRead:
+) -> ReadUser:
     result = await db.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
     if not user:

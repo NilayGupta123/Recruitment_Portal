@@ -3,7 +3,7 @@ from pydantic import BaseModel
 from app.models.campaign import CampaignStatus
 
 
-class CampaignBase(BaseModel):
+class BaseCampaign(BaseModel):
     title: str
     description: str | None = None
     location: str | None = None
@@ -12,11 +12,11 @@ class CampaignBase(BaseModel):
     end_date: date | None = None
 
 
-class CreateCampaign(CampaignBase):
+class CreateCampaign(BaseCampaign):
     pass
 
 
-class ReadCampaign(CampaignBase):
+class ReadCampaign(BaseCampaign):
     id: int
     hosted_by: int
     created_at: datetime
@@ -26,5 +26,13 @@ class ReadCampaign(CampaignBase):
         from_attributes = True
 
 
-class UpdateCampaign(CampaignBase):
+class UpdateCampaign(BaseCampaign):
     pass
+
+class PartialUpdateCampaign(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    location: str | None = None
+    status: CampaignStatus | None = None
+    start_date: date | None = None
+    end_date: date | None = None

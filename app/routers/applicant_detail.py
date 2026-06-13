@@ -12,7 +12,7 @@ from app.models.applicant import ApplicantDetail
 from app.models.user import User
 from app.routers.auth import get_current_user
 
-from app.schemas.applicant_detail import CreateApplicantDetail, ReadApplicantDetail
+from app.schemas.applicant_detail import CreateApplicantDetail, ReadApplicantDetail, UpdateApplicantDetail, PartialUpdateApplicantDetail
 
 
 router = APIRouter(prefix="/applicant-details", tags=["applicant-details"])
@@ -58,4 +58,63 @@ async def get_applicant_detail(applicant_detail_id: int, db: AsyncSession = Depe
     if not applicant_detail:
         raise HTTPException(status_code=404, detail="Applicant detail not found")
 
+    return applicant_detail
+
+@router.put("/put/{applicant_detail_id}", response_model=ReadApplicantDetail)
+async def update_applicant_detail(applicant_detail_id: int, payload: UpdateApplicantDetail, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> ReadApplicantDetail:
+    result = await db.execute(select(ApplicantDetail).where(ApplicantDetail.id == applicant_detail_id))
+    applicant_detail = result.scalar_one_or_none()
+    if not applicant_detail:
+        raise HTTPException(status_code=404, detail="Applicant detail not found")
+
+    applicant_detail.address = payload.address
+    applicant_detail.linkedin_url = payload.linkedin_url
+    applicant_detail.github_url = payload.github_url
+    applicant_detail.years_of_experience = payload.years_of_experience
+    applicant_detail.resume_file = payload.resume_file
+    applicant_detail.current_company = payload.current_company
+    applicant_detail.current_ctc = payload.current_ctc
+    applicant_detail.expected_ctc = payload.expected_ctc
+    applicant_detail.notice_period = payload.notice_period
+
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Applicant detail update failed")
+    await db.refresh(applicant_detail)
+    return applicant_detail
+
+@router.patch("/patch/{applicant_detail_id}", response_model=ReadApplicantDetail)
+async def patch_applicant_detail(applicant_detail_id: int, payload: PartialUpdateApplicantDetail, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> ReadApplicantDetail:
+    result = await db.execute(select(ApplicantDetail).where(ApplicantDetail.id == applicant_detail_id))
+    applicant_detail = result.scalar_one_or_none()
+    if not applicant_detail:
+        raise HTTPException(status_code=404, detail="Applicant detail not found")
+
+    if payload.address:
+        applicant_detail.address = payload.address
+    if payload.linkedin_url:
+        applicant_detail.linkedin_url = payload.linkedin_url
+    if payload.github_url:
+        applicant_detail.github_url = payload.github_url
+    if payload.years_of_experience is not None:
+        applicant_detail.years_of_experience = payload.years_of_experience
+    if payload.resume_file is not None:
+        applicant_detail.resume_file = payload.resume_file
+    if payload.current_company:
+        applicant_detail.current_company = payload.current_company
+    if payload.current_ctc is not None:
+        applicant_detail.current_ctc = payload.current_ctc
+    if payload.expected_ctc is not None:
+        applicant_detail.expected_ctc = payload.expected_ctc
+    if payload.notice_period is not None:
+        applicant_detail.notice_period = payload.notice_period
+
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Applicant detail patch failed")
+    await db.refresh(applicant_detail)
     return applicant_detail

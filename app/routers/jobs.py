@@ -12,7 +12,7 @@ from app.models.job import Job
 from app.models.user import User
 from app.routers.auth import get_current_user
 
-from app.schemas.job import CreateJob, ReadJob
+from app.schemas.job import CreateJob, ReadJob, UpdateJob, PartialUpdateJob
 
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
@@ -44,4 +44,55 @@ async def get_job(job_id: int, db: AsyncSession = Depends(get_db), current_user:
     job = result.scalar_one_or_none()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
+    return job
+
+@router.put("/put/{job_id}", response_model=ReadJob)
+async def update_job(job_id: int, payload: UpdateJob, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> ReadJob:
+    result = await db.execute(select(Job).where(Job.id == job_id))
+    job = result.scalar_one_or_none()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job.posted_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to update this job")
+
+    job.title = payload.title
+    job.description = payload.description
+    job.department = payload.department
+    job.employment_type = payload.employment_type
+    job.experience_required = payload.experience_required
+
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Job update failed")
+    await db.refresh(job)
+    return job
+
+@router.patch("/patch/{job_id}", response_model=ReadJob)
+async def partial_update_job(job_id: int, payload: PartialUpdateJob, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> ReadJob:
+    result = await db.execute(select(Job).where(Job.id == job_id))
+    job = result.scalar_one_or_none()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if job.posted_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized to update this job")
+
+    if payload.title:
+        job.title = payload.title
+    if payload.description:
+        job.description = payload.description
+    if payload.department:
+        job.department = payload.department
+    if payload.employment_type:
+        job.employment_type = payload.employment_type
+    if payload.experience_required is not None:
+        job.experience_required = payload.experience_required
+
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Job update failed")
+    await db.refresh(job)
     return job
