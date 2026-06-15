@@ -13,7 +13,7 @@ from app.models.job import Job
 from app.models.user import User
 from app.routers.auth import get_current_user
 
-from app.schemas.skill import CreateSkill, ReadSkill
+from app.schemas.skill import CreateSkill, ReadSkill, UpdateSkill, PartialUpdateSkill
 
 router = APIRouter(prefix="/skills", tags=["skills"])
 
@@ -40,4 +40,39 @@ async def get_skill(skill_id: int, db: AsyncSession = Depends(get_db), current_u
     skill = result.scalar_one_or_none()
     if not skill:
         raise HTTPException(status_code=404, detail="Skill not found")
+    return skill
+
+@router.put("/put/{skill_id}", response_model=ReadSkill)
+async def update_skill(skill_id: int, payload: UpdateSkill, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> ReadSkill:
+    result = await db.execute(select(Skill).where(Skill.id == skill_id))
+    skill = result.scalar_one_or_none()
+    if not skill:
+        raise HTTPException(status_code=404, detail="Skill not found")
+
+    skill.skill_name = payload.skill_name
+
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Skill update failed")
+    await db.refresh(skill)
+    return skill
+
+@router.patch("/patch/{skill_id}", response_model=ReadSkill)
+async def partial_update_skill(skill_id: int, payload: PartialUpdateSkill, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> ReadSkill:
+    result = await db.execute(select(Skill).where(Skill.id == skill_id))
+    skill = result.scalar_one_or_none()
+    if not skill:
+        raise HTTPException(status_code=404, detail="Skill not found")
+
+    if payload.skill_name:
+        skill.skill_name = payload.skill_name
+
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Skill update failed")
+    await db.refresh(skill)
     return skill

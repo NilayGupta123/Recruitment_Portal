@@ -5,18 +5,18 @@ from pydantic import BaseModel, EmailStr
 from app.models.user import UserType
 
 
-class UserBase(BaseModel):
+class BaseUser(BaseModel):
     email: EmailStr
     full_name: str | None = None
     user_type: UserType = UserType.APPLICANT
     phone_number: str | None = None
 
 
-class UserCreate(UserBase):
+class CreateUser(BaseUser):
     password: str
 
 
-class UserRead(UserBase):
+class ReadUser(BaseUser):
     id: int
     created_at: datetime
     updated_at: datetime | None = None
@@ -24,13 +24,19 @@ class UserRead(UserBase):
     class Config:
         from_attributes = True
 
-class UserUpdate(UserBase):
+class UpdateUser(BaseUser):
     pass
 
 
-class UserPasswordReset(BaseModel):
+class PasswordResetUser(BaseModel):
     new_password: str
     model_password: str
+
+
+class PartialUpdateUser(BaseModel):
+    email: EmailStr | None = None
+    full_name: str | None = None
+    phone_number: str | None = None
 
 
 

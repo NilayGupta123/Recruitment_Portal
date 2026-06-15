@@ -13,7 +13,7 @@ from app.models.user import User
 from app.models.applicant import ApplicantDetail
 from app.routers.auth import get_current_user
 
-from app.schemas.applicant import CreateApplicant, ReadApplicantCore
+from app.schemas.applicant import CreateApplicant, ReadApplicantCore, UpdateApplicant, PartialUpdateApplicant
 
 
 router = APIRouter(prefix="/applicants", tags=["applicants"])
@@ -93,4 +93,40 @@ async def get_applicant(applicant_id: int, db: AsyncSession = Depends(get_db), c
     applicant = result.scalar_one_or_none()
     if not applicant:
         raise HTTPException(status_code=404,detail="Application not found")
+    return applicant
+
+@router.put("/put/{applicant_id}", response_model=ReadApplicantCore)
+async def update_applicant(applicant_id: int, payload: UpdateApplicant, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> ReadApplicantCore:
+    result = await db.execute(select(Applicant).where(Applicant.id == applicant_id))
+    applicant = result.scalar_one_or_none()
+    if not applicant:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    applicant.status = payload.status
+
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Application update failed")
+    await db.refresh(applicant)
+    return applicant
+
+
+@router.patch("/patch/{applicant_id}", response_model=ReadApplicantCore)
+async def patch_applicant(applicant_id: int, payload: PartialUpdateApplicant, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> ReadApplicantCore:
+    result = await db.execute(select(Applicant).where(Applicant.id == applicant_id))
+    applicant = result.scalar_one_or_none()
+    if not applicant:
+        raise HTTPException(status_code=404, detail="Application not found")
+
+    if payload.status:
+        applicant.status = payload.status
+
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Application update failed")
+    await db.refresh(applicant)
     return applicant

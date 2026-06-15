@@ -3,7 +3,7 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
-class JobBase(BaseModel):
+class BaseJob(BaseModel):
     title: str
     description: str | None = None
     department: str | None = None
@@ -11,10 +11,10 @@ class JobBase(BaseModel):
     experience_required: int | None = None
 
 
-class CreateJob(JobBase):
+class CreateJob(BaseJob):
     pass
 
-class ReadJob(JobBase):
+class ReadJob(BaseJob):
     id: int
     posted_by: int
     created_at: datetime
@@ -23,5 +23,12 @@ class ReadJob(JobBase):
     class Config:
         from_attributes = True
 
-class UpdateJob(JobBase):
+class UpdateJob(BaseJob):
     pass
+
+class PartialUpdateJob(BaseModel):
+    title: str | None = None
+    description: str | None = None
+    department: str | None = None
+    employment_type: str | None = None
+    experience_required: int | None = None

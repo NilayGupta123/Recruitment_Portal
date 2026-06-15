@@ -2,15 +2,15 @@ from datetime import datetime
 from pydantic import BaseModel
 
 
-class SkillBase(BaseModel):
+class BaseSkill(BaseModel):
     skill_name: str
 
 
-class CreateSkill(SkillBase):
+class CreateSkill(BaseSkill):
     pass
 
 
-class ReadSkill(SkillBase):
+class ReadSkill(BaseSkill):
     id: int
     created_at: datetime
 
@@ -18,5 +18,8 @@ class ReadSkill(SkillBase):
         from_attributes = True
 
 
-class UpdateSkill(SkillBase):
+class UpdateSkill(BaseSkill):
     pass
+
+class PartialUpdateSkill(BaseModel):
+    skill_name: str | None = None
