@@ -15,8 +15,17 @@ from app.routers import campaign
 from app.routers import applicant_detail
 from app.routers import applicant
 
+from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(title=settings.app_name, debug=settings.debug)
-
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Migrations are managed by Alembic; no implicit table creation on startup.
 

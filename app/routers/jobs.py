@@ -27,7 +27,14 @@ async def list_jobs(db: AsyncSession = Depends(get_db), current_user: User = Dep
 @router.post("/create", response_model=ReadJob, status_code=status.HTTP_201_CREATED)
 async def create_job(payload: CreateJob, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> ReadJob:
     
-    job = Job(title=payload.title, description=payload.description, posted_by=current_user.id)
+    job = Job(
+        title=payload.title,
+        description=payload.description,
+        department=payload.department,
+        employment_type=payload.employment_type,
+        experience_required=payload.experience_required,
+        posted_by=current_user.id,
+    )
     db.add(job)
     try:
         await db.commit()
