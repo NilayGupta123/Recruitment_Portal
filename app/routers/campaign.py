@@ -6,6 +6,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import delete
+
+from app.models.job import Job
+from app.models.campaign import CampaignJobMapping
+from app.schemas.job import ReadJob
+from app.schemas.campaign_job_mapping import CampaignJobsRequest, CampaignJobResponse
 
 from app.db.session import get_db
 from app.models.campaign import Campaign
@@ -111,3 +117,41 @@ async def partial_update_campaign(campaign_id: int, payload: PartialUpdateCampai
         raise HTTPException(status_code=400, detail="Campaign update failed")
     await db.refresh(campaign)
     return campaign
+
+
+@router.get("/{campaign_id}/jobs", response_model=list[ReadJob])
+async def get_campaign_jobs(campaign_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    
+    result = await db.execute(select(Job).join(CampaignJobMapping, CampaignJobMapping.job_id == Job.id).where(CampaignJobMapping.campaign_id == campaign_id))
+    return list(result.scalars().all())
+
+@router.put("/{campaign_id}/jobs", response_model=list[CampaignJobResponse])
+async def update_campaign_jobs(campaign_id: int, payload: CampaignJobsRequest, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+
+    result = await db.execute(select(Campaign).where(Campaign.id == campaign_id))
+    campaign = result.scalar_one_or_none()
+    if campaign is None:
+        raise HTTPException(status_code=404, detail="Campaign not found")
+    if campaign.hosted_by != current_user.id:
+        raise HTTPException(status_code=403, detail="Not authorized")
+
+    await db.execute(delete(CampaignJobMapping).where(CampaignJobMapping.campaign_id == campaign_id))
+
+    mappings = []
+
+    for job in payload.jobs:
+
+        mapping = CampaignJobMapping(
+            campaign_id=campaign_id,
+            job_id=job.job_id,
+            salary_min=job.salary_min,
+            salary_max=job.salary_max,
+            vacancies=job.vacancies,
+        )
+
+        db.add(mapping)
+        mappings.append(mapping)
+    await db.commit()
+    for mapping in mappings:
+        await db.refresh(mapping)
+    return mappings

@@ -6,7 +6,9 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-
+from sqlalchemy import select
+from app.models.user import User
+from app.schemas.applicant import ReadApplicantProfile
 from app.db.session import get_db
 from app.models.applicant import Applicant
 from app.models.user import User
@@ -130,3 +132,29 @@ async def patch_applicant(applicant_id: int, payload: PartialUpdateApplicant, db
         raise HTTPException(status_code=400, detail="Application update failed")
     await db.refresh(applicant)
     return applicant
+
+
+@router.get("/profile/{application_id}", response_model=ReadApplicantProfile)
+async def get_applicant_profile(application_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    result = await db.execute(select(Applicant).where(Applicant.id == application_id))
+    application = result.scalar_one_or_none()
+
+    if application is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Application not found",
+        )
+
+    user_result = await db.execute(select(User).where(User.id == application.applicant_id))
+    user = user_result.scalar_one()
+    detail_result = await db.execute(select(ApplicantDetail).where(ApplicantDetail.applicant_id == application.applicant_id))
+    details = detail_result.scalar_one_or_none()
+
+    return {
+        "application_id": application.id,
+        "job_id": application.job_id,
+        "status": application.status,
+        "applied_at": application.applied_at,
+        "user": user,
+        "details": details,
+    }

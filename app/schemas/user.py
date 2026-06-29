@@ -29,14 +29,15 @@ class UpdateUser(BaseUser):
 
 
 class PasswordResetUser(BaseModel):
+    current_password: str
     new_password: str
-    model_password: str
 
 
 class PartialUpdateUser(BaseModel):
     email: EmailStr | None = None
     full_name: str | None = None
     phone_number: str | None = None
+    user_type: UserType | None = None
 
 
 

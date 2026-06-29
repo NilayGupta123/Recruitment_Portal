@@ -35,7 +35,7 @@ export default function Sidebar() {
       { name: "Dashboard", path: "/dashboard", icon: <FaHome className="w-5 h-5" /> },
       { name: "Jobs", path: "/jobs", icon: <FaBriefcase className="w-5 h-5" /> },
       { name: "Campaigns", path: "/campaigns", icon: <FaBullhorn className="w-5 h-5" /> },
-      { name: "Applications", path: "/applications", icon: <FaUsers className="w-5 h-5" /> },
+      { name: "My Applications", path: "/applicants", icon: <FaUsers className="w-5 h-5" /> },
       { name: "Profile", path: "/profile", icon: <FaUserCircle className="w-5 h-5" /> },
     ],
   };

@@ -10,8 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
 from app.models.user import User
 from app.routers.auth import get_current_user
-from app.schemas.user import CreateUser, ReadUser, UpdateUser, PartialUpdateUser
-
+from app.schemas.user import CreateUser, ReadUser, UpdateUser, PartialUpdateUser, PasswordResetUser
+#from app.routers.auth import verify_password, get_password_hash
 router = APIRouter(prefix="/users", tags=["users"])
 
 
@@ -63,6 +63,7 @@ async def update_user(
     user.email = payload.email
     user.full_name = payload.full_name if payload.full_name is not None else user.full_name
     user.phone_number = payload.phone_number
+    user.user_type = payload.user_type
 
     try:
         await db.commit()
@@ -98,6 +99,9 @@ async def patch_user(
     if payload.phone_number:
         user.phone_number = payload.phone_number
 
+    if payload.user_type:
+        user.user_type = payload.user_type
+
 
     try:
         await db.commit()
@@ -106,3 +110,50 @@ async def patch_user(
         raise HTTPException(status_code=400, detail="Email already exists")
     await db.refresh(user)
     return user
+
+
+#password reset endpoint
+'''@router.patch("/password/{user_id}")
+async def change_password(
+    user_id: int,
+    payload: PasswordResetUser,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    result = await db.execute(
+        select(User).where(User.id == user_id)
+    )
+
+    user = result.scalar_one_or_none()
+
+    if user is None:
+        raise HTTPException(
+            status_code=404,
+            detail="User not found",
+        )
+
+    # Users can only change their own password
+    if current_user.id != user.id:
+        raise HTTPException(
+            status_code=403,
+            detail="Not authorized",
+        )
+
+    if not verify_password(
+        payload.current_password,
+        user.password,
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="Current password is incorrect",
+        )
+
+    user.password = get_password_hash(
+        payload.new_password
+    )
+
+    await db.commit()
+
+    return {
+        "message": "Password updated successfully"
+    }'''

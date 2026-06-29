@@ -11,8 +11,9 @@ from app.db.session import get_db
 from app.models.job import Job
 from app.models.user import User
 from app.routers.auth import get_current_user
-
+from app.schemas.applicant import ReadApplicantList
 from app.schemas.job import CreateJob, ReadJob, UpdateJob, PartialUpdateJob
+from app.models.applicant import Applicant
 
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
@@ -103,3 +104,20 @@ async def partial_update_job(job_id: int, payload: PartialUpdateJob, db: AsyncSe
         raise HTTPException(status_code=400, detail="Job update failed")
     await db.refresh(job)
     return job
+
+# Get Applicants for a Job
+@router.get("/{job_id}/applicants", response_model=list[ReadApplicantList])
+async def get_job_applicants(job_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    result = await db.execute(
+        select(
+            Applicant.id.label("application_id"),
+            Applicant.applicant_id,
+            User.full_name,
+            User.email,
+            User.phone_number,
+            Applicant.status,
+            Applicant.applied_at,
+        )
+        .join(User, Applicant.applicant_id == User.id).where(Applicant.job_id == job_id).order_by(Applicant.applied_at.desc()))
+
+    return result.mappings().all()

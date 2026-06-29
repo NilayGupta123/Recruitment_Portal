@@ -1,3 +1,14 @@
+import { useAuth } from "../../context/AuthContext";
+
+import ApplicantManagement from "./ApplicantManagement";
+import MyApplications from "./MyApplications";
+
 export default function Applicants() {
-  return <div>Applicants Page</div>;
+  const { user } = useAuth();
+
+  if (!user) return null;
+
+  return user.user_type === "APPLICANT"
+    ? <MyApplications />
+    : <ApplicantManagement />;
 }

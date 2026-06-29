@@ -96,5 +96,5 @@ async def logout(credentials: HTTPAuthorizationCredentials = Depends(security)):
 
 @router.get("/me", response_model=dict)
 async def me(current: User = Depends(get_current_user)) -> dict:
-	return {"id": current.id, "email": current.email, "full_name": current.full_name,"user_type": current.user_type}
+	return {"id": current.id, "email": current.email,"phone_number": current.phone_number, "full_name": current.full_name,"user_type": current.user_type, "created_at": current.created_at, "updated_at": current.updated_at}
 
