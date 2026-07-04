@@ -14,3 +14,18 @@ export const updateApplicantStatus = (
     `/applicants/patch/${applicationId}`,
     data
   );
+
+export const getMyApplications = () =>
+  API.get("/applicants/my");
+
+export const applyForJob = (data) =>
+  API.post(
+    "/applicants/applicant-register",
+    data
+  );
+
+export const getMyProfile = () =>
+  API.get("/auth/me");
+
+export const applyToJob = (jobId) =>
+  API.post(`/applicants/apply/${jobId}`);

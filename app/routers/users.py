@@ -28,7 +28,7 @@ async def create_user(
     current_user: User = Depends(get_current_user)
 ) -> ReadUser:
     # hashed = get_password_hash(payload.password)
-    user = User(email=payload.email, full_name=payload.full_name, user_type=payload.user_type, password=payload.password, phone_number=payload.phone_number)
+    user = User(email=payload.email, full_name=payload.full_name, user_type=payload.user_type, password=payload.password, phone_number=payload.phone_number, is_registered=True)
     db.add(user)
     try:
         await db.commit()

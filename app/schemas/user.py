@@ -7,7 +7,7 @@ from app.models.user import UserType
 
 class BaseUser(BaseModel):
     email: EmailStr
-    full_name: str | None = None
+    full_name: str
     user_type: UserType = UserType.APPLICANT
     phone_number: str | None = None
 
@@ -39,5 +39,14 @@ class PartialUpdateUser(BaseModel):
     phone_number: str | None = None
     user_type: UserType | None = None
 
+class ApplicantSignup(BaseModel):
+    email: EmailStr
+    full_name: str
+    password: str
 
+
+class SignupResponse(BaseModel):
+    message: str
+    user_id: int
+    is_registered: bool
 

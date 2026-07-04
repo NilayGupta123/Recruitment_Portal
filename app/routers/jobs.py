@@ -60,8 +60,8 @@ async def update_job(job_id: int, payload: UpdateJob, db: AsyncSession = Depends
     job = result.scalar_one_or_none()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-    if job.posted_by != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to update this job")
+    if current_user.user_type not in ["ADMIN", "HR"]:
+        raise HTTPException(status_code=403, detail="Only Admin or HR can update jobs")
 
     job.title = payload.title
     job.description = payload.description
@@ -83,8 +83,9 @@ async def partial_update_job(job_id: int, payload: PartialUpdateJob, db: AsyncSe
     job = result.scalar_one_or_none()
     if not job:
         raise HTTPException(status_code=404, detail="Job not found")
-    if job.posted_by != current_user.id:
-        raise HTTPException(status_code=403, detail="Not authorized to update this job")
+    if current_user.user_type not in ["ADMIN", "HR"]:
+        raise HTTPException(status_code=403, detail="Only Admin or HR can update jobs")
+
 
     if payload.title:
         job.title = payload.title
@@ -121,3 +122,18 @@ async def get_job_applicants(job_id: int, db: AsyncSession = Depends(get_db), cu
         .join(User, Applicant.applicant_id == User.id).where(Applicant.job_id == job_id).order_by(Applicant.applied_at.desc()))
 
     return result.mappings().all()
+
+@router.get("/public")
+async def get_public_jobs(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Job))
+    jobs = result.scalars().all()
+    return jobs
+
+@router.get("/public/{job_id}")
+async def get_public_job(job_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(Job).where(Job.id == job_id))
+    job = result.scalar_one_or_none()
+    
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    return job

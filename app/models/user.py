@@ -3,7 +3,7 @@ from __future__ import annotations
 from datetime import datetime
 from enum import Enum
 
-from sqlalchemy import DateTime, String, func, Enum as SAEnum
+from sqlalchemy import Boolean, DateTime, String, func, Enum as SAEnum
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -46,6 +46,16 @@ class User(Base):
         SAEnum(UserType, name="user_type"),
         nullable=False,
         server_default="APPLICANT"
+    )
+
+    # ------------------------------------------
+    # False -> Anonymous Applicant
+    # True  -> Registered User
+    # ------------------------------------------
+    is_registered: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        server_default="false",
     )
 
     created_at: Mapped[datetime] = mapped_column(

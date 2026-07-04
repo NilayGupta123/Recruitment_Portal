@@ -6,17 +6,16 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
 from app.models.user import User
 from app.schemas.applicant import ReadApplicantProfile
 from app.db.session import get_db
 from app.models.applicant import Applicant
-from app.models.user import User
+from app.models.user import User , UserType
 from app.models.applicant import ApplicantDetail
 from app.routers.auth import get_current_user
 
-from app.schemas.applicant import CreateApplicant, ReadApplicantCore, UpdateApplicant, PartialUpdateApplicant
-
+from app.schemas.applicant import CreateApplicant, ReadApplicantCore, UpdateApplicant, PartialUpdateApplicant, ReadApplicantProfile, MyApplication
+from app.models.job import Job
 
 router = APIRouter(prefix="/applicants", tags=["applicants"])
 
@@ -40,15 +39,17 @@ async def create_applicant(payload: CreateApplicant, db: AsyncSession = Depends(
         applicant_user = User(
             email=payload.email,
             full_name=payload.full_name,
-            user_type=payload.user_type,
-            password=payload.password,
+            user_type=UserType.APPLICANT,
+            password="PENDING_SIGNUP",
             phone_number=payload.phone_number,
+            is_registered=False,
         )
         db.add(applicant_user)
         await db.flush()
 
     else:
-        print(f"\n\n got old user - {applicant_user.email}\n\n")
+        applicant_user.full_name = payload.full_name
+        applicant_user.phone_number = payload.phone_number
     
     applicant = Applicant(
         job_id=payload.job_id,
@@ -65,20 +66,42 @@ async def create_applicant(payload: CreateApplicant, db: AsyncSession = Depends(
 
     print(f"applicant created with id {applicant.id}" )
 
-    applicant_details = ApplicantDetail(
-        applicant_id=applicant_user.id,
-        address=payload.address,
-        linkedin_url=payload.linkedin_url,
-        github_url=payload.github_url,
-        years_of_experience=payload.years_of_experience,
-        resume_file=payload.resume_file,
-        current_company=payload.current_company,
-        current_ctc=payload.current_ctc,
-        expected_ctc=payload.expected_ctc,
-        notice_period=payload.notice_period,
+    detail_result = await db.execute(
+        select(ApplicantDetail).where(
+            ApplicantDetail.applicant_id == applicant_user.id
+        )
     )
 
-    db.add(applicant_details)
+    applicant_details = detail_result.scalar_one_or_none()
+
+    if applicant_details is None:
+
+        applicant_details = ApplicantDetail(
+            applicant_id=applicant_user.id,
+            address=payload.address,
+            linkedin_url=payload.linkedin_url,
+            github_url=payload.github_url,
+            years_of_experience=payload.years_of_experience,
+            resume_file=payload.resume_file,
+            current_company=payload.current_company,
+            current_ctc=payload.current_ctc,
+            expected_ctc=payload.expected_ctc,
+            notice_period=payload.notice_period,
+        )
+
+        db.add(applicant_details)
+
+    else:
+
+        applicant_details.address = payload.address
+        applicant_details.linkedin_url = payload.linkedin_url
+        applicant_details.github_url = payload.github_url
+        applicant_details.years_of_experience = payload.years_of_experience
+        applicant_details.resume_file = payload.resume_file
+        applicant_details.current_company = payload.current_company
+        applicant_details.current_ctc = payload.current_ctc
+        applicant_details.expected_ctc = payload.expected_ctc
+        applicant_details.notice_period = payload.notice_period
     try:
         await db.commit()
     except IntegrityError:
@@ -122,7 +145,7 @@ async def patch_applicant(applicant_id: int, payload: PartialUpdateApplicant, db
     if not applicant:
         raise HTTPException(status_code=404, detail="Application not found")
 
-    if payload.status:
+    if payload.status is not None:
         applicant.status = payload.status
 
     try:
@@ -157,4 +180,78 @@ async def get_applicant_profile(application_id: int, db: AsyncSession = Depends(
         "applied_at": application.applied_at,
         "user": user,
         "details": details,
+    }
+
+@router.get("/my", response_model=list[MyApplication])
+async def get_my_applications(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
+    result = await db.execute(select(Applicant, Job).join(Job, Applicant.job_id == Job.id).where(Applicant.applicant_id == current_user.id).order_by(Applicant.applied_at.desc()))
+    rows = result.all()
+    return [
+        {
+            "id": application.id,
+            "job_id": job.id,
+            "job_title": job.title,
+            "status": application.status,
+            "applied_at": application.applied_at,
+        }
+        for application, job in rows
+    ]
+
+@router.post("/apply/{job_id}")
+async def apply_to_job(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    # Only applicants can apply
+    if current_user.user_type != UserType.APPLICANT:
+        raise HTTPException(
+            status_code=403,
+            detail="Only applicants can apply for jobs.",
+        )
+
+    # Check job exists
+    result = await db.execute(
+        select(Job).where(Job.id == job_id)
+    )
+    job = result.scalar_one_or_none()
+
+    if job is None:
+        raise HTTPException(
+            status_code=404,
+            detail="Job not found.",
+        )
+
+    # Prevent duplicate applications
+    result = await db.execute(
+        select(Applicant).where(
+            Applicant.job_id == job_id,
+            Applicant.applicant_id == current_user.id,
+        )
+    )
+
+    existing = result.scalar_one_or_none()
+
+    if existing:
+        raise HTTPException(
+            status_code=400,
+            detail="You have already applied for this job.",
+        )
+
+    # Create application
+    application = Applicant(
+        job_id=job_id,
+        applicant_id=current_user.id,
+        status="Applied",
+    )
+
+    db.add(application)
+
+    await db.commit()
+
+    await db.refresh(application)
+
+    return {
+        "message": "Application submitted successfully.",
+        "application_id": application.id,
     }

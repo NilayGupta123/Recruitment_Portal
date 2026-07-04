@@ -14,6 +14,7 @@ from app.routers import skill
 from app.routers import campaign
 from app.routers import applicant_detail
 from app.routers import applicant
+from app.routers import public
 
 from fastapi.middleware.cors import CORSMiddleware
 app = FastAPI(title=settings.app_name, debug=settings.debug)
@@ -57,3 +58,4 @@ app.include_router(skill.router)
 app.include_router(campaign.router)
 app.include_router(applicant_detail.router)
 app.include_router(applicant.router)
+app.include_router(public.router)

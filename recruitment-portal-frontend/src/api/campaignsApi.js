@@ -14,3 +14,16 @@ export const updateCampaign = (
     `/campaigns/put/${campaignId}`,
     data
   );
+
+export const getCampaignJobs = (
+  campaignId
+) =>
+  API.get(
+    `/campaigns/${campaignId}/jobs`
+  );
+
+export const getMyApplications = () =>
+  API.get("/applicants/my");
+
+export const getPublicCampaigns = () =>
+  API.get("/public/campaigns");

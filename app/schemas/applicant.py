@@ -70,3 +70,13 @@ class ReadApplicantProfile(BaseModel):
 
     user: ReadUser
     details: ReadApplicantDetail
+
+class MyApplication(BaseModel):
+    id: int
+    job_id: int
+    job_title: str
+    status: str
+    applied_at: datetime
+
+    class Config:
+        from_attributes = True

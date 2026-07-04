@@ -22,21 +22,18 @@ export default function Sidebar() {
       { name: "Campaigns", path: "/campaigns", icon: <FaBullhorn className="w-5 h-5" /> },
       { name: "Applicants", path: "/applicants", icon: <FaUsers className="w-5 h-5" /> },
       { name: "Users", path: "/users", icon: <FaUserCog className="w-5 h-5" /> },
-      { name: "Profile", path: "/profile", icon: <FaUserCircle className="w-5 h-5" /> },
     ],
     HR: [
       { name: "Dashboard", path: "/dashboard", icon: <FaHome className="w-5 h-5" /> },
       { name: "Jobs", path: "/jobs", icon: <FaBriefcase className="w-5 h-5" /> },
       { name: "Campaigns", path: "/campaigns", icon: <FaBullhorn className="w-5 h-5" /> },
       { name: "Applicants", path: "/applicants", icon: <FaUsers className="w-5 h-5" /> },
-      { name: "Profile", path: "/profile", icon: <FaUserCircle className="w-5 h-5" /> },
     ],
     APPLICANT: [
       { name: "Dashboard", path: "/dashboard", icon: <FaHome className="w-5 h-5" /> },
       { name: "Jobs", path: "/jobs", icon: <FaBriefcase className="w-5 h-5" /> },
       { name: "Campaigns", path: "/campaigns", icon: <FaBullhorn className="w-5 h-5" /> },
       { name: "My Applications", path: "/applicants", icon: <FaUsers className="w-5 h-5" /> },
-      { name: "Profile", path: "/profile", icon: <FaUserCircle className="w-5 h-5" /> },
     ],
   };
 
@@ -106,18 +103,6 @@ export default function Sidebar() {
         ))}
       </nav>
 
-      {/* Logout */}
-      <div className="p-4 border-t border-slate-100">
-        <button
-          onClick={handleLogout}
-          /* Matched the padding, gap, and text size from the nav links above */
-          className="w-full flex items-center gap-4 px-4 py-3 rounded-lg text-base font-medium text-slate-600 hover:text-red-600 hover:bg-red-50 transition-colors duration-200 group"
-        >
-          <FaSignOutAlt className="w-5 h-5 text-slate-400 group-hover:text-red-500 transition-colors" />
-          <span>Logout</span>
-        </button>
-      </div>
-      
     </aside>
   );
 }
