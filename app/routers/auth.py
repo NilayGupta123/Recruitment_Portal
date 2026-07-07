@@ -13,8 +13,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.db.session import get_db
-from app.models.user import User
-
+from app.models.user import User, UserType
+from app.schemas.user import ApplicantSignup, SignupResponse
 router = APIRouter(prefix="/auth", tags=["auth"])
 security = HTTPBearer()
 
@@ -70,6 +70,32 @@ async def login(
 	token = await create_access_token({"user_id": str(user.id), "email": user.email})
 	return {"access_token": token, "token_type": "bearer"}
 
+@router.post("/signup", response_model=SignupResponse)
+async def signup(payload: ApplicantSignup, db: AsyncSession = Depends(get_db)):
+
+    result = await db.execute(
+        select(User).where(User.email == payload.email))
+    user = result.scalar_one_or_none()
+    if user:
+        if user.is_registered:
+            raise HTTPException(status_code=400, detail="Email already registered.")
+
+        user.full_name = payload.full_name
+        user.password = payload.password
+        user.is_registered = True
+    else:
+        user = User(
+            full_name=payload.full_name,
+            email=payload.email,
+            phone_number=None,
+            password=payload.password,
+            user_type=UserType.APPLICANT,
+            is_registered=True,
+        )
+        db.add(user)
+    await db.commit()
+    await db.refresh(user)
+    return {"message": "Signup completed successfully", "user_id": user.id, "is_registered": user.is_registered}
 
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security), db: AsyncSession = Depends(get_db)) -> User:
 	token = credentials.credentials
@@ -96,5 +122,5 @@ async def logout(credentials: HTTPAuthorizationCredentials = Depends(security)):
 
 @router.get("/me", response_model=dict)
 async def me(current: User = Depends(get_current_user)) -> dict:
-	return {"id": current.id, "email": current.email, "full_name": current.full_name}
+	return {"id": current.id, "email": current.email,"phone_number": current.phone_number, "full_name": current.full_name,"user_type": current.user_type, "created_at": current.created_at, "updated_at": current.updated_at}
 

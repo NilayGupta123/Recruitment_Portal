@@ -3,6 +3,8 @@ from pydantic import BaseModel
 
 from app.schemas.user import CreateUser, ReadUser
 from app.schemas.applicant_detail import CreateApplicantDetail, ReadApplicantDetail
+from app.schemas.user import ReadUser
+from app.schemas.applicant_detail import ReadApplicantDetail
 
 class BaseApplicant(BaseModel):
     status: str = "APPLIED"
@@ -43,3 +45,38 @@ class UpdateApplicant(BaseApplicant):
 
 class PartialUpdateApplicant(BaseModel):
     status: str | None = None
+
+# return the applicants for a specific job along with basic user information
+class ReadApplicantList(BaseModel):
+    application_id: int
+    applicant_id: int
+
+    full_name: str
+    email: str
+    phone_number: str | None = None
+
+    status: str | None = None
+    applied_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class ReadApplicantProfile(BaseModel):
+    application_id: int
+    job_id: int
+    status: str | None = None
+    applied_at: datetime
+
+    user: ReadUser
+    details: ReadApplicantDetail
+
+class MyApplication(BaseModel):
+    id: int
+    job_id: int
+    job_title: str
+    status: str
+    applied_at: datetime
+
+    class Config:
+        from_attributes = True
