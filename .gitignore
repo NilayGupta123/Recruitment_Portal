@@ -24,3 +24,7 @@ venv/
 .coverage
 htmlcov/
 .pytest_cache/
+
+#postman
+*.postman_collection.json
+*.postman_collection

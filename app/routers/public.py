@@ -1,6 +1,7 @@
 from __future__ import annotations
+from io import BytesIO
 from typing import List
-from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File as FastAPIFile
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.db.session import get_db
@@ -8,9 +9,11 @@ from app.models.user import User, UserType
 from app.models.job import Job
 from app.models.applicant import Applicant
 from app.models.applicant import ApplicantDetail
-from app.schemas.public import CheckApplicantRequest, CheckApplicantResponse, ApplicantDetailsResponse, PublicApplicationCreate, PublicApplicationResponse
+from app.models.file import File as FileRecord
+from app.schemas.public import CheckApplicantRequest, CheckApplicantResponse, ApplicantDetailsResponse, PublicApplicationCreate, PublicApplicationResponse, UploadResumeResponse
 from app.schemas.campaign import ReadCampaign
 from app.models.campaign import Campaign
+from app.services.storage import S3StorageManager
 
 router = APIRouter(prefix="/public", tags=["Public"])
 
@@ -104,8 +107,7 @@ async def apply_job(payload: PublicApplicationCreate, db: AsyncSession = Depends
             current_ctc=payload.current_ctc,
             expected_ctc=payload.expected_ctc,
             notice_period=payload.notice_period,
-            #resume_file=payload.resume_file,
-            resume_file=None,
+            resume_file=payload.resume_file,
         )
         db.add(details)
     else:
@@ -152,13 +154,39 @@ async def apply_job(payload: PublicApplicationCreate, db: AsyncSession = Depends
         message="Application submitted successfully.",
     )
 
-@router.post("/upload-resume")
-async def upload_resume():
-    return {
-        "file_id": 1,
-        "file_name": "resume.pdf",
-        "message": "Temporary endpoint"
-    }
+@router.post("/upload-resume", response_model=UploadResumeResponse)
+async def upload_resume(
+    file: UploadFile = FastAPIFile(...),
+    db: AsyncSession = Depends(get_db),
+):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file selected")
+
+    storage = S3StorageManager()
+    contents = await file.read()
+    upload_result = storage.upload_file(
+        file_obj=BytesIO(contents),
+        file_name=file.filename,
+        folder="resumes",
+        content_type=file.content_type or "application/octet-stream",
+    )
+
+    db_file = FileRecord(
+        file_type=file.content_type or "application/octet-stream",
+        file_name=file.filename,
+        file_link=upload_result.get("url") or upload_result.get("key"),
+    )
+    db.add(db_file)
+    await db.flush()
+    await db.commit()
+    await db.refresh(db_file)
+
+    return UploadResumeResponse(
+        file_id=db_file.id,
+        file_name=db_file.file_name or file.filename,
+        file_link=db_file.file_link,
+        message="File uploaded successfully.",
+    )
 
 @router.get("/campaigns", response_model=List[ReadCampaign])
 async def list_public_campaigns(

@@ -34,6 +34,7 @@ class CheckApplicantResponse(BaseModel):
 class UploadResumeResponse(BaseModel):
     file_id: int
     file_name: str
+    file_link: Optional[str] = None
     message: str
 
 # -------------------------------------------------

@@ -114,19 +114,18 @@ export default function ApplyJob() {
       setSubmitting(true);
 
       let resumeFileId = null;
-      resume_file: null,
+
       //---------------------------------
       // Upload Resume
       //---------------------------------
 
-     /* if (formData.resume) {
+      if (formData.resume) {
         const uploadResponse = await uploadResume(
           formData.resume
         );
 
-        resumeFileId =
-          uploadResponse.data.file_id;
-      }*/
+        resumeFileId = uploadResponse.data.file_id;
+      }
 
       //---------------------------------
       // Submit Application

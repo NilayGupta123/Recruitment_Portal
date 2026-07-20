@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+from io import BytesIO
 from typing import List
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, UploadFile, File as FastAPIFile, status
+from fastapi.responses import RedirectResponse, StreamingResponse
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,12 +14,29 @@ from app.db.session import get_db
 from app.models.applicant import Applicant
 from app.models.user import User , UserType
 from app.models.applicant import ApplicantDetail
+from app.models.file import File as FileRecord
 from app.routers.auth import get_current_user
 
 from app.schemas.applicant import CreateApplicant, ReadApplicantCore, UpdateApplicant, PartialUpdateApplicant, ReadApplicantProfile, MyApplication
 from app.models.job import Job
+from app.services.storage import S3StorageManager
 
 router = APIRouter(prefix="/applicants", tags=["applicants"])
+
+
+def build_resume_detail_payload(details: ApplicantDetail | None, file_record: FileRecord | None = None):
+    if details is None:
+        return None
+
+    return {
+        **details.__dict__,
+        "resume_file_url": (
+            f"/applicants/files/{file_record.id}"
+            if file_record is not None
+            else None
+        ),
+        "resume_file_name": file_record.file_name if file_record is not None else None,
+    }
 
 
 @router.get("/list", response_model=List[ReadApplicantCore])
@@ -173,14 +192,46 @@ async def get_applicant_profile(application_id: int, db: AsyncSession = Depends(
     detail_result = await db.execute(select(ApplicantDetail).where(ApplicantDetail.applicant_id == application.applicant_id))
     details = detail_result.scalar_one_or_none()
 
+    file_record = None
+    if details and details.resume_file is not None:
+        file_result = await db.execute(select(FileRecord).where(FileRecord.id == details.resume_file))
+        file_record = file_result.scalar_one_or_none()
+
     return {
         "application_id": application.id,
         "job_id": application.job_id,
         "status": application.status,
         "applied_at": application.applied_at,
         "user": user,
-        "details": details,
+        "details": build_resume_detail_payload(details, file_record),
     }
+
+
+@router.get("/files/{file_id}")
+async def get_uploaded_file(file_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(select(FileRecord).where(FileRecord.id == file_id))
+    file_record = result.scalar_one_or_none()
+
+    if file_record is None:
+        raise HTTPException(status_code=404, detail="File not found")
+
+    file_link = file_record.file_link or ""
+    if file_link.startswith(("http://", "https://")):
+        return RedirectResponse(url=file_link, status_code=307)
+
+    storage = S3StorageManager()
+    try:
+        file_data = storage.get_file(file_link)
+    except FileNotFoundError as exc:
+        raise HTTPException(status_code=404, detail="File not found") from exc
+
+    return StreamingResponse(
+        BytesIO(file_data["body"]),
+        media_type=file_record.file_type or "application/octet-stream",
+        headers={
+            "Content-Disposition": f"inline; filename={file_record.file_name or 'file'}"
+        },
+    )
 
 @router.get("/my", response_model=list[MyApplication])
 async def get_my_applications(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
@@ -202,6 +253,7 @@ async def apply_to_job(
     job_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
+    file: UploadFile | None = FastAPIFile(default=None),
 ):
     # Only applicants can apply
     if current_user.user_type != UserType.APPLICANT:
@@ -238,7 +290,6 @@ async def apply_to_job(
             detail="You have already applied for this job.",
         )
 
-    # Create application
     application = Applicant(
         job_id=job_id,
         applicant_id=current_user.id,
@@ -246,9 +297,38 @@ async def apply_to_job(
     )
 
     db.add(application)
+    await db.flush()
+
+    if file is not None and file.filename:
+        storage = S3StorageManager()
+        contents = await file.read()
+        upload_result = storage.upload_file(
+            file_obj=BytesIO(contents),
+            file_name=file.filename,
+            folder="resumes",
+            content_type=file.content_type or "application/octet-stream",
+        )
+
+        db_file = FileRecord(
+            file_type=file.content_type or "application/octet-stream",
+            file_name=file.filename,
+            file_link=upload_result.get("url") or upload_result.get("key"),
+        )
+        db.add(db_file)
+        await db.flush()
+
+        detail_result = await db.execute(select(ApplicantDetail).where(ApplicantDetail.applicant_id == current_user.id))
+        applicant_detail = detail_result.scalar_one_or_none()
+        if applicant_detail is None:
+            applicant_detail = ApplicantDetail(
+                applicant_id=current_user.id,
+                resume_file=db_file.id,
+            )
+            db.add(applicant_detail)
+        else:
+            applicant_detail.resume_file = db_file.id
 
     await db.commit()
-
     await db.refresh(application)
 
     return {

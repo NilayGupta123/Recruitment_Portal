@@ -9,6 +9,8 @@ class BaseApplicantDetail(BaseModel):
     github_url: str | None = None
     years_of_experience: int | None = None
     resume_file: int | None = None
+    resume_file_url: str | None = None
+    resume_file_name: str | None = None
     current_company: str | None = None
     current_ctc: Decimal | None = None
     expected_ctc: Decimal | None = None

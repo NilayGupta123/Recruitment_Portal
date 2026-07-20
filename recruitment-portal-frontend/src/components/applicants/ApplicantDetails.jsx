@@ -47,6 +47,20 @@ export default function ApplicantDetails({
             <p>{profile.user.phone_number || "-"}</p>
           </div>
 
+          {profile.details?.resume_file_url && (
+            <div>
+              <p className="text-gray-500 text-sm">Resume</p>
+              <a
+                href={profile.details.resume_file_url}
+                target="_blank"
+                rel="noreferrer"
+                className="text-blue-600 hover:text-blue-800 underline break-all"
+              >
+                {profile.details.resume_file_name || "Open resume"}
+              </a>
+            </div>
+          )}
+
           <div>
             <p className="text-gray-500 text-sm">Current CTC</p>
             <p>{profile.details?.current_ctc ?? "-"}</p>

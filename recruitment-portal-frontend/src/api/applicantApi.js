@@ -27,5 +27,16 @@ export const applyForJob = (data) =>
 export const getMyProfile = () =>
   API.get("/auth/me");
 
-export const applyToJob = (jobId) =>
-  API.post(`/applicants/apply/${jobId}`);
+export const applyToJob = (jobId, file) => {
+  const formData = new FormData();
+
+  if (file) {
+    formData.append("file", file);
+  }
+
+  return API.post(`/applicants/apply/${jobId}`, formData, {
+    headers: {
+      "Content-Type": "multipart/form-data",
+    },
+  });
+};

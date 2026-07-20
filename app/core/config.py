@@ -15,5 +15,12 @@ class Settings(BaseSettings):
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
 
+    s3_bucket_name: str = ""
+    s3_region_name: str = "us-east-1"
+    s3_access_key_id: str = ""
+    s3_secret_access_key: str = ""
+    s3_endpoint_url: str = ""
+    upload_dir: str = "recruitment_portal"
+
 
 settings = Settings()  # type: ignore[misc]

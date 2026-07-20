@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { FaCheckCircle, FaPaperPlane } from "react-icons/fa";
+import { FaCheckCircle, FaPaperPlane, FaFileUpload } from "react-icons/fa";
 
 import { applyToJob } from "../../api/applicantApi";
 
@@ -19,12 +19,14 @@ export default function ApplyJobButton({
   onApplied,
 }) {
   const [loading, setLoading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const fileInputRef = useRef(null);
 
   const handleApply = async () => {
     try {
       setLoading(true);
 
-      await applyToJob(job.id);
+      await applyToJob(job.id, selectedFile);
 
       toast.success(
         "Application submitted successfully!"
@@ -99,16 +101,34 @@ export default function ApplyJobButton({
 
   // Not Applied
   return (
-    <button
-      onClick={handleApply}
-      disabled={loading}
-      className="w-full flex justify-center items-center gap-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-4 rounded-xl text-lg font-semibold transition"
-    >
-      <FaPaperPlane />
+    <div className="space-y-3">
+      <div className="rounded-xl border border-dashed border-blue-300 bg-blue-50 p-3">
+        <label className="flex cursor-pointer items-center justify-between gap-2 text-sm text-blue-700">
+          <span className="flex items-center gap-2">
+            <FaFileUpload />
+            {selectedFile ? selectedFile.name : "Upload resume for this application"}
+          </span>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".pdf,.doc,.docx"
+            className="hidden"
+            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+          />
+        </label>
+      </div>
 
-      {loading
-        ? "Submitting..."
-        : "Apply Now"}
-    </button>
+      <button
+        onClick={handleApply}
+        disabled={loading}
+        className="w-full flex justify-center items-center gap-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-4 rounded-xl text-lg font-semibold transition"
+      >
+        <FaPaperPlane />
+
+        {loading
+          ? "Submitting..."
+          : "Apply Now"}
+      </button>
+    </div>
   );
 }
