@@ -163,11 +163,14 @@ export default function ApplicantJobDrawer({
               Job Description
             </h3>
 
-            <div className="bg-gray-50 rounded-xl p-5 leading-7 whitespace-pre-line">
-
-              {job.description || "No description available."}
-
-            </div>
+            <div
+              className="bg-gray-50 rounded-xl p-5 prose max-w-none overflow-x-auto"
+              dangerouslySetInnerHTML={{
+                __html:
+                  job.description ||
+                  "<p>No description available.</p>",
+              }}
+            />
 
           </div>
 

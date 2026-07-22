@@ -131,9 +131,14 @@ export default function CampaignDrawer({
                 Description
               </p>
 
-              <p className="whitespace-pre-wrap">
-                {campaign.description}
-              </p>
+            <div
+              className="prose max-w-none"
+              dangerouslySetInnerHTML={{
+                __html:
+                  campaign.description ||
+                  "<p>No description available.</p>",
+              }}
+            />
             </div>
 
             {/* Jobs */}

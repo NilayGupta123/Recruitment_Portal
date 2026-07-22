@@ -73,9 +73,14 @@ export default function JobDrawer({
               Description
             </p>
 
-            <p className="leading-relaxed">
-              {job.description || "No description available"}
-            </p>
+          <div
+            className="prose max-w-none leading-relaxed"
+            dangerouslySetInnerHTML={{
+              __html:
+                job.description ||
+                "<p>No description available</p>",
+            }}
+          />
           </div>
 
         </div>
