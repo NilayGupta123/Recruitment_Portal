@@ -3,6 +3,11 @@ import os
 
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
+
+from app.services.prompts.resume_scorer_prompt import (
+    get_resume_scoring_prompt,
+)
 
 load_dotenv()
 
@@ -19,97 +24,18 @@ class ResumeScorer:
         job: dict,
     ) -> dict:
 
-        prompt = f"""
-You are an experienced Senior Technical Recruiter.
-
-Your task is to evaluate how well a candidate matches a job.
-
-=========================
-JOB DETAILS
-=========================
-
-{json.dumps(job, indent=2)}
-
-=========================
-CANDIDATE PROFILE
-=========================
-
-{json.dumps(parsed_resume, indent=2)}
-
-=========================
-
-Evaluate the candidate objectively.
-
-Consider:
-
-• Required Skills
-• Relevant Experience
-• Education
-• Certifications
-• Projects
-• Employment History
-• Overall Fit
-
-Scoring Guidelines
-
-0-3
-Candidate is unsuitable.
-
-4-7
-Candidate has potential but requires HR review.
-
-8-10
-Candidate is an excellent match.
-
-Return ONLY valid JSON.
-
-Do not return markdown.
-
-Return exactly this schema.
-
-{
-    "score": 0,
-    "decision": "",
-
-    "summary": "",
-
-    "matched_skills": [],
-
-    "missing_skills": [],
-
-    "strengths": [],
-
-    "weaknesses": [],
-
-    "experience_match": "",
-
-    "education_match": "",
-
-    "recommendation": ""
-}
-
-Rules
-
-- score must be between 0 and 10.
-
-- decision must be one of
-
-AUTO_ACCEPT
-REVIEW
-AUTO_REJECT
-
-- Do not invent information.
-
-- If a required skill is absent, include it in missing_skills.
-
-- recommendation should explain the hiring decision.
-
-Return only JSON.
-"""
+        prompt = get_resume_scoring_prompt(
+            parsed_resume,
+            job,
+        )
 
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
+            config=types.GenerateContentConfig(
+                temperature=0.2,
+                response_mime_type="application/json",
+            ),
         )
 
         text = response.text.strip()
@@ -118,4 +44,22 @@ Return only JSON.
             text = text.split("\n", 1)[1]
             text = text.rsplit("```", 1)[0].strip()
 
-        return json.loads(text)
+        try:
+            result = json.loads(text)
+
+            # Ensure score stays between 0 and 10
+            if "score" in result:
+                result["score"] = max(
+                    0,
+                    min(
+                        10,
+                        float(result["score"]),
+                    ),
+                )
+
+            return result
+
+        except json.JSONDecodeError:
+            raise ValueError(
+                "Gemini returned an invalid JSON response."
+            )

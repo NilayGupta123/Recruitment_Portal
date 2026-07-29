@@ -5,3 +5,9 @@ export const generateDescription = (payload) =>
     "/ai/generate-description",
     payload
   );
+
+export const generateScreeningQuestions = (data) =>
+    API.post(
+        "/ai/generate-screening-questions",
+        data
+    );

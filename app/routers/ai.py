@@ -3,6 +3,8 @@ from fastapi import APIRouter
 from app.schemas.ai import (
     GenerateDescriptionRequest,
     GenerateDescriptionResponse,
+    GenerateScreeningQuestionsRequest,
+    GenerateScreeningQuestionsResponse,
 )
 
 from app.services.ai_service import AIService
@@ -30,3 +32,17 @@ async def generate_description(
     return {
         "description": description
     }
+
+@router.post(
+    "/generate-screening-questions",
+    response_model=GenerateScreeningQuestionsResponse,
+)
+async def generate_screening_questions(
+    payload: GenerateScreeningQuestionsRequest,
+):
+
+    response = await AIService.generate_screening_questions(
+        payload
+    )
+
+    return response
