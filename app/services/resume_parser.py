@@ -3,17 +3,16 @@ import os
 import tempfile
 
 import requests
-from dotenv import load_dotenv
+from app.core.config import settings
 from google import genai
 
 from app.services.prompts.resume_parser_prompt import (
     RESUME_PARSER_PROMPT,
 )
 
-load_dotenv()
 
 client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
+    api_key=settings.gemini_api_key
 )
 
 

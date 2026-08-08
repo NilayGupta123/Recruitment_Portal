@@ -1,7 +1,7 @@
 import json
 import os
 
-from dotenv import load_dotenv
+from app.core.config import settings
 from google import genai
 from google.genai import types
 
@@ -9,10 +9,9 @@ from app.services.prompts.resume_scorer_prompt import (
     get_resume_scoring_prompt,
 )
 
-load_dotenv()
 
 client = genai.Client(
-    api_key=os.getenv("GEMINI_API_KEY")
+    api_key=settings.gemini_api_key
 )
 
 

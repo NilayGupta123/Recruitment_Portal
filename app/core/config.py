@@ -22,5 +22,7 @@ class Settings(BaseSettings):
     s3_endpoint_url: str = ""
     upload_dir: str = "recruitment_portal"
 
+    gemini_api_key: str = ""
+
 
 settings = Settings()  # type: ignore[misc]
