@@ -6,151 +6,89 @@ import {
   ShieldCheck,
   Clock,
 } from "lucide-react";
+import Card from "../../ui/Card";
 
 export default function SignupBenefits() {
   const benefits = [
     {
-      icon: <Briefcase size={30} />,
-      title: "Track Applications",
-      description:
-        "Monitor every application from submission to final hiring decision.",
+      icon: Briefcase,
+      title: "Track applications",
+      description: "Follow every application from submission to decision.",
     },
     {
-      icon: <FileText size={30} />,
-      title: "One-Click Apply",
-      description:
-        "Your profile is saved so future applications take only a few seconds.",
+      icon: FileText,
+      title: "One-click apply",
+      description: "Your profile is saved so future applications take seconds.",
     },
     {
-      icon: <UserCircle size={30} />,
-      title: "Manage Your Profile",
-      description:
-        "Keep your experience, education, skills and certifications up to date.",
+      icon: UserCircle,
+      title: "Manage your profile",
+      description: "Keep experience, education, and skills up to date.",
     },
     {
-      icon: <Bell size={30} />,
-      title: "Status Notifications",
-      description:
-        "Receive updates whenever your application status changes.",
+      icon: Bell,
+      title: "Status updates",
+      description: "Get notified when your application status changes.",
     },
     {
-      icon: <ShieldCheck size={30} />,
-      title: "Secure Account",
-      description:
-        "Your personal information and resume are stored securely.",
+      icon: ShieldCheck,
+      title: "Secure account",
+      description: "Personal information and resumes stay protected.",
     },
     {
-      icon: <Clock size={30} />,
-      title: "Application History",
-      description:
-        "View all your previous applications anytime from your dashboard.",
+      icon: Clock,
+      title: "Application history",
+      description: "Review past applications anytime from your dashboard.",
     },
   ];
 
   return (
-    <div className="space-y-8">
-
-      {/* Welcome Card */}
-
-      <div className="rounded-3xl bg-gradient-to-br from-blue-700 to-indigo-700 text-white p-10 shadow-xl">
-
-        <h2 className="text-4xl font-bold leading-tight">
+    <div className="space-y-5">
+      <div className="rounded-[24px] bg-gradient-to-br from-[var(--color-brand)] to-[#5e5ce6] p-8 text-white shadow-[var(--shadow-soft)]">
+        <h2 className="text-[28px] font-semibold tracking-[-0.03em]">
           Welcome to RecruitPro
         </h2>
-
-        <p className="mt-5 text-blue-100 leading-8 text-lg">
-          You've already completed the first step by submitting your
-          application.
+        <p className="mt-4 text-[15px] leading-7 text-white/80">
+          Create your account to unlock a personalized applicant dashboard and
+          manage every stage of your hiring journey.
         </p>
-
-        <p className="mt-4 text-blue-100 leading-8">
-          Create your account to unlock your personalized applicant
-          dashboard and manage every stage of your recruitment journey.
-        </p>
-
       </div>
 
-      {/* Benefits */}
-
-      <div className="grid gap-6">
-
-        {benefits.map((benefit) => (
-
-          <div
-            key={benefit.title}
-            className="bg-white rounded-2xl shadow-sm hover:shadow-lg transition-all duration-300 border border-slate-200 p-6 flex gap-5"
-          >
-
-            <div className="w-14 h-14 rounded-xl bg-blue-100 text-blue-700 flex items-center justify-center flex-shrink-0">
-
-              {benefit.icon}
-
-            </div>
-
-            <div>
-
-              <h3 className="text-xl font-bold text-slate-800">
-
-                {benefit.title}
-
-              </h3>
-
-              <p className="text-slate-600 mt-2 leading-7">
-
-                {benefit.description}
-
-              </p>
-
-            </div>
-
-          </div>
-
-        ))}
-
+      <div className="grid gap-3">
+        {benefits.map((benefit) => {
+          const Icon = benefit.icon;
+          return (
+            <Card key={benefit.title} className="flex gap-4 p-5" hover>
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-brand-soft)] text-[var(--color-brand)]">
+                <Icon size={22} />
+              </div>
+              <div>
+                <h3 className="text-base font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+                  {benefit.title}
+                </h3>
+                <p className="mt-1 text-sm leading-6 text-[var(--color-ink-secondary)]">
+                  {benefit.description}
+                </p>
+              </div>
+            </Card>
+          );
+        })}
       </div>
 
-      {/* Bottom Card */}
-
-      <div className="rounded-2xl border border-orange-200 bg-orange-50 p-8">
-
-        <h3 className="text-2xl font-bold text-orange-700">
-
-          Already Applied?
-
+      <div className="rounded-[20px] border border-[rgba(255,159,10,0.25)] bg-[rgba(255,159,10,0.08)] p-6">
+        <h3 className="text-lg font-semibold tracking-[-0.02em] text-[#b25000]">
+          Already applied?
         </h3>
-
-        <p className="mt-4 text-slate-700 leading-7">
-
-          If you previously applied using the same email address, we'll
-          automatically connect your account with your existing
-          application history.
-
+        <p className="mt-2 text-sm leading-6 text-[var(--color-ink-secondary)]">
+          If you applied with the same email, we’ll connect your account to your
+          existing application history.
         </p>
-
-        <div className="mt-6 bg-white rounded-xl p-4 border border-orange-200">
-
-          <p className="font-semibold text-slate-800">
-
-            ✓ No duplicate profiles
-
-          </p>
-
-          <p className="font-semibold text-slate-800 mt-2">
-
-            ✓ Keep all previous applications
-
-          </p>
-
-          <p className="font-semibold text-slate-800 mt-2">
-
-            ✓ Continue exactly where you left off
-
-          </p>
-
-        </div>
-
+        <ul className="mt-4 space-y-2 text-sm font-medium text-[var(--color-ink)]">
+          <li>✓ No duplicate profiles</li>
+          <li>✓ Keep previous applications</li>
+          <li>✓ Continue where you left off</li>
+        </ul>
       </div>
-
     </div>
   );
 }

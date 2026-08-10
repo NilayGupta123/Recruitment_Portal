@@ -1,291 +1,114 @@
-import {Briefcase, Award, IndianRupee, CalendarDays, Linkedin,Github} from "lucide-react";
-export default function ProfessionalInfoStep({formData, updateField}) {
+import { Field, Input, Label, Select } from "../../ui/Input";
+
+export default function ProfessionalInfoStep({ formData, updateField }) {
   return (
-    <div className="space-y-10">
-
-      {/* Header */}
-
+    <div className="space-y-8">
       <div>
-
-        <h2 className="text-3xl font-bold text-slate-900">
-          Professional Information
+        <h2 className="text-[28px] font-semibold tracking-[-0.03em] text-[var(--color-ink)]">
+          Professional information
         </h2>
-
-        <p className="text-gray-500 mt-2">
+        <p className="mt-1.5 text-[15px] text-[var(--color-ink-secondary)]">
           Help us understand your professional background.
         </p>
-
       </div>
 
-      {/* Experience */}
+      <div className="grid gap-5 md:grid-cols-2">
+        <Field>
+          <Label>Years of experience</Label>
+          <Input
+            type="number"
+            min="0"
+            value={formData.years_of_experience}
+            onChange={(e) =>
+              updateField("years_of_experience", e.target.value)
+            }
+            placeholder="3"
+          />
+        </Field>
 
-      <div className="grid md:grid-cols-2 gap-8">
+        <Field>
+          <Label>Current company</Label>
+          <Input
+            value={formData.current_company}
+            onChange={(e) => updateField("current_company", e.target.value)}
+            placeholder="Google"
+          />
+        </Field>
 
-        {/* Experience */}
+        <Field>
+          <Label>Current CTC (LPA)</Label>
+          <Input
+            type="number"
+            value={formData.current_ctc}
+            onChange={(e) => updateField("current_ctc", e.target.value)}
+            placeholder="8"
+          />
+        </Field>
 
-        <div>
+        <Field>
+          <Label>Expected CTC (LPA)</Label>
+          <Input
+            type="number"
+            value={formData.expected_ctc}
+            onChange={(e) => updateField("expected_ctc", e.target.value)}
+            placeholder="12"
+          />
+        </Field>
 
-          <label className="font-semibold text-sm">
-            Years of Experience
-          </label>
-
-          <div className="mt-2 flex items-center border rounded-2xl px-4 h-14">
-
-            <Award
-              size={20}
-              className="text-gray-400"
-            />
-
-            <input
-              type="number"
-              min="0"
-              value={formData.years_of_experience}
-              onChange={(e) =>
-                updateField(
-                  "years_of_experience",
-                  e.target.value
-                )
-              }
-              className="ml-3 w-full outline-none"
-              placeholder="3"
-            />
-
-          </div>
-
-        </div>
-
-        {/* Company */}
-
-        <div>
-
-          <label className="font-semibold text-sm">
-            Current Company
-          </label>
-
-          <div className="mt-2 flex items-center border rounded-2xl px-4 h-14">
-
-            <Briefcase
-              size={20}
-              className="text-gray-400"
-            />
-
-            <input
-              value={formData.current_company}
-              onChange={(e) =>
-                updateField(
-                  "current_company",
-                  e.target.value
-                )
-              }
-              className="ml-3 w-full outline-none"
-              placeholder="Google"
-            />
-
-          </div>
-
-        </div>
-
-        {/* Current CTC */}
-
-        <div>
-
-          <label className="font-semibold text-sm">
-            Current CTC (LPA)
-          </label>
-
-          <div className="mt-2 flex items-center border rounded-2xl px-4 h-14">
-
-            <IndianRupee
-              size={20}
-              className="text-gray-400"
-            />
-
-            <input
-              type="number"
-              value={formData.current_ctc}
-              onChange={(e) =>
-                updateField(
-                  "current_ctc",
-                  e.target.value
-                )
-              }
-              className="ml-3 w-full outline-none"
-              placeholder="8"
-            />
-
-          </div>
-
-        </div>
-
-        {/* Expected */}
-
-        <div>
-
-          <label className="font-semibold text-sm">
-            Expected CTC (LPA)
-          </label>
-
-          <div className="mt-2 flex items-center border rounded-2xl px-4 h-14">
-
-            <IndianRupee
-              size={20}
-              className="text-gray-400"
-            />
-
-            <input
-              type="number"
-              value={formData.expected_ctc}
-              onChange={(e) =>
-                updateField(
-                  "expected_ctc",
-                  e.target.value
-                )
-              }
-              className="ml-3 w-full outline-none"
-              placeholder="12"
-            />
-
-          </div>
-
-        </div>
-
-        {/* Notice */}
-
-        <div>
-
-          <label className="font-semibold text-sm">
-            Notice Period
-          </label>
-
-          <div className="mt-2 flex items-center border rounded-2xl px-4 h-14">
-
-            <CalendarDays
-              size={20}
-              className="text-gray-400"
-            />
-
-            <select
+        <Field>
+          <Label>Notice period</Label>
+          <Select
             value={formData.notice_period}
             onChange={(e) =>
-                updateField("notice_period", Number(e.target.value))
+              updateField(
+                "notice_period",
+                e.target.value === "" ? "" : Number(e.target.value)
+              )
             }
-            >
+          >
             <option value="">Select</option>
             <option value={0}>Immediate</option>
             <option value={15}>15 Days</option>
             <option value={30}>30 Days</option>
             <option value={60}>60 Days</option>
             <option value={90}>90 Days</option>
-            </select>
-
-          </div>
-
-        </div>
-
+          </Select>
+        </Field>
       </div>
 
-      {/* Links */}
-
-      <div className="border-t pt-10">
-
-        <h3 className="text-2xl font-bold mb-8">
-
-          Professional Links
-
+      <div className="border-t border-[var(--color-line)] pt-8">
+        <h3 className="text-xl font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+          Professional links
         </h3>
-
-        <div className="grid md:grid-cols-2 gap-8">
-
-          {/* LinkedIn */}
-
-          <div>
-
-            <label className="font-semibold text-sm">
-              LinkedIn Profile
-            </label>
-
-            <div className="mt-2 flex items-center border rounded-2xl px-4 h-14">
-
-              <Linkedin
-                size={20}
-                className="text-blue-700"
-              />
-
-              <input
-                value={formData.linkedin_url}
-                onChange={(e) =>
-                  updateField(
-                    "linkedin_url",
-                    e.target.value
-                  )
-                }
-                className="ml-3 w-full outline-none"
-                placeholder="https://linkedin.com/in/..."
-              />
-
-            </div>
-
-          </div>
-
-          {/* GitHub */}
-
-          <div>
-
-            <label className="font-semibold text-sm">
-              GitHub Profile
-            </label>
-
-            <div className="mt-2 flex items-center border rounded-2xl px-4 h-14">
-
-              <Github
-                size={20}
-                className="text-slate-700"
-              />
-
-              <input
-                value={formData.github_url}
-                onChange={(e) =>
-                  updateField(
-                    "github_url",
-                    e.target.value
-                  )
-                }
-                className="ml-3 w-full outline-none"
-                placeholder="https://github.com/..."
-              />
-
-            </div>
-
-          </div>
-
+        <div className="mt-5 grid gap-5 md:grid-cols-2">
+          <Field>
+            <Label>LinkedIn profile</Label>
+            <Input
+              value={formData.linkedin_url}
+              onChange={(e) => updateField("linkedin_url", e.target.value)}
+              placeholder="https://linkedin.com/in/..."
+            />
+          </Field>
+          <Field>
+            <Label>GitHub profile</Label>
+            <Input
+              value={formData.github_url}
+              onChange={(e) => updateField("github_url", e.target.value)}
+              placeholder="https://github.com/..."
+            />
+          </Field>
         </div>
-
       </div>
 
-      {/* Tips */}
-
-      <div className="rounded-2xl bg-orange-50 border border-orange-200 p-6">
-
-        <h3 className="font-semibold text-orange-700">
-
-          🚀 Profile Tips
-
-        </h3>
-
-        <ul className="mt-4 space-y-2 text-gray-700">
-
-          <li>• Keep your LinkedIn profile updated.</li>
-
-          <li>• Add your GitHub if you have personal projects.</li>
-
-          <li>• Mention accurate salary expectations.</li>
-
-          <li>• Be honest about your notice period.</li>
-
+      <div className="rounded-[18px] border border-[rgba(255,159,10,0.25)] bg-[rgba(255,159,10,0.1)] px-5 py-5">
+        <h3 className="font-semibold text-[#b25000]">Profile tips</h3>
+        <ul className="mt-3 space-y-1.5 text-sm text-[var(--color-ink-secondary)]">
+          <li>Keep your LinkedIn profile updated.</li>
+          <li>Add your GitHub if you have personal projects.</li>
+          <li>Mention accurate salary expectations.</li>
+          <li>Be honest about your notice period.</li>
         </ul>
-
       </div>
-
     </div>
   );
 }

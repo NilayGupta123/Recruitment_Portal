@@ -1,6 +1,5 @@
 import Navbar from "../../../components/public/Navbar";
 import Footer from "../../../components/public/Footer";
-
 import SignupForm from "../../../components/public/auth/SignupForm";
 import SignupBenefits from "../../../components/public/auth/SignupBenefits";
 
@@ -8,49 +7,22 @@ export default function Signup() {
   return (
     <>
       <Navbar />
-
-      <main className="min-h-screen bg-slate-50 py-16">
-
-        <div className="max-w-7xl mx-auto px-6">
-
-          {/* Page Heading */}
-
-          <div className="text-center mb-14">
-
-            <h1 className="text-5xl font-bold text-slate-900">
-
-              Create Your RecruitPro Account
-
+      <main className="min-h-screen bg-[var(--color-canvas)] pb-16 pt-28">
+        <div className="mx-auto max-w-7xl px-5 sm:px-6">
+          <div className="mx-auto mb-12 max-w-2xl text-center">
+            <h1 className="text-[clamp(2rem,4vw,3rem)] font-semibold tracking-[-0.035em] text-[var(--color-ink)]">
+              Create your RecruitPro account
             </h1>
-
-            <p className="text-lg text-slate-600 mt-5">
-
-              You've already taken the first step by applying.
-              Create your account to track applications,
-              manage your profile and apply faster in the future.
-
+            <p className="mt-4 text-[16px] leading-7 text-[var(--color-ink-secondary)]">
+              Track applications, manage your profile, and apply faster next time.
             </p>
-
           </div>
-
-          {/* Main Content */}
-
-          <div className="grid lg:grid-cols-2 gap-12 items-start">
-
-            {/* Left */}
-
+          <div className="grid items-start gap-8 lg:grid-cols-2 lg:gap-12">
             <SignupForm />
-
-            {/* Right */}
-
             <SignupBenefits />
-
           </div>
-
         </div>
-
       </main>
-
       <Footer />
     </>
   );

@@ -1,143 +1,77 @@
-export default function ProfileCard({
-  profile,
-  onEdit,
-}) {
+import Card, { CardBody, CardHeader } from "../ui/Card";
+import Button from "../ui/Button";
+import Badge from "../ui/Badge";
+import Avatar from "../ui/Avatar";
+
+const roleTone = {
+  ADMIN: "danger",
+  HR: "success",
+  APPLICANT: "brand",
+};
+
+export default function ProfileCard({ profile, onEdit }) {
   if (!profile) return null;
 
-  const initials = profile.full_name
-    ? profile.full_name
-        .split(" ")
-        .map((word) => word[0])
-        .join("")
-        .substring(0, 2)
-        .toUpperCase()
-    : "U";
-
   return (
-    <div className="bg-white rounded-2xl shadow-sm border p-8">
-
-      {/* Header */}
-
-      <div className="flex items-center justify-between">
-
-        <h2 className="text-2xl font-bold text-slate-800">
-          Personal Information
+    <Card className="h-full">
+      <CardHeader>
+        <h2 className="text-xl font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+          Personal information
         </h2>
-
-        <button
-          onClick={onEdit}
-          className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-xl transition"
-        >
-          Edit Profile
-        </button>
-
-      </div>
-
-      {/* Avatar */}
-
-      <div className="flex items-center gap-6 mt-8">
-
-        <div className="w-24 h-24 rounded-full bg-blue-600 text-white flex items-center justify-center text-3xl font-bold">
-
-          {initials}
-
+        <Button size="sm" onClick={onEdit}>
+          Edit profile
+        </Button>
+      </CardHeader>
+      <CardBody>
+        <div className="flex items-center gap-5">
+          <Avatar name={profile.full_name} size="lg" className="h-20 w-20 text-xl" />
+          <div>
+            <h3 className="text-2xl font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+              {profile.full_name}
+            </h3>
+            <p className="mt-1 text-sm text-[var(--color-ink-secondary)]">
+              {profile.user_type}
+            </p>
+          </div>
         </div>
 
-        <div>
-
-          <h3 className="text-2xl font-bold text-slate-800">
-
-            {profile.full_name}
-
-          </h3>
-
-          <p className="text-gray-500 mt-1">
-
-            {profile.user_type}
-
-          </p>
-
+        <div className="mt-8 grid gap-3 sm:grid-cols-2">
+          <div className="rounded-[16px] border border-[var(--color-line)] bg-[var(--color-canvas)] px-4 py-3.5">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
+              Email
+            </p>
+            <p className="mt-1.5 break-all font-semibold text-[var(--color-ink)]">
+              {profile.email}
+            </p>
+          </div>
+          <div className="rounded-[16px] border border-[var(--color-line)] bg-[var(--color-canvas)] px-4 py-3.5">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
+              Phone
+            </p>
+            <p className="mt-1.5 font-semibold text-[var(--color-ink)]">
+              {profile.phone_number || "—"}
+            </p>
+          </div>
+          <div className="rounded-[16px] border border-[var(--color-line)] bg-[var(--color-canvas)] px-4 py-3.5">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
+              Role
+            </p>
+            <div className="mt-1.5">
+              <Badge tone={roleTone[profile.user_type] || "default"}>
+                {profile.user_type}
+              </Badge>
+            </div>
+          </div>
+          <div className="rounded-[16px] border border-[var(--color-line)] bg-[var(--color-canvas)] px-4 py-3.5">
+            <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
+              User ID
+            </p>
+            <p className="mt-1.5 font-semibold text-[var(--color-ink)]">
+              #{profile.id}
+            </p>
+          </div>
         </div>
-
-      </div>
-
-      {/* Details */}
-
-      <div className="grid grid-cols-2 gap-6 mt-10">
-
-        <div className="bg-slate-50 rounded-xl p-4">
-
-          <p className="text-sm text-gray-500">
-
-            Email
-
-          </p>
-
-          <p className="font-semibold mt-2 break-all">
-
-            {profile.email}
-
-          </p>
-
-        </div>
-
-        <div className="bg-slate-50 rounded-xl p-4">
-
-          <p className="text-sm text-gray-500">
-
-            Phone
-
-          </p>
-
-          <p className="font-semibold mt-2">
-
-            {profile.phone_number || "-"}
-
-          </p>
-
-        </div>
-
-        <div className="bg-slate-50 rounded-xl p-4">
-
-          <p className="text-sm text-gray-500">
-
-            Role
-
-          </p>
-
-          <span
-            className={`inline-block mt-2 px-3 py-1 rounded-full text-sm font-semibold
-            ${
-              profile.user_type === "ADMIN"
-                ? "bg-red-100 text-red-700"
-                : profile.user_type === "HR"
-                ? "bg-green-100 text-green-700"
-                : "bg-blue-100 text-blue-700"
-            }`}
-          >
-            {profile.user_type}
-          </span>
-
-        </div>
-
-        <div className="bg-slate-50 rounded-xl p-4">
-
-          <p className="text-sm text-gray-500">
-
-            User ID
-
-          </p>
-
-          <p className="font-semibold mt-2">
-
-            #{profile.id}
-
-          </p>
-
-        </div>
-
-      </div>
-
-    </div>
+      </CardBody>
+    </Card>
   );
 }

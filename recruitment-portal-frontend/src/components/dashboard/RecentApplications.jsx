@@ -1,97 +1,55 @@
-const badge = {
-  Applied:
-    "bg-blue-100 text-blue-700",
+import Badge from "../ui/Badge";
+import {
+  TableShell,
+  Table,
+  THead,
+  Th,
+  TBody,
+  Tr,
+  Td,
+} from "../ui/Table";
 
-  Shortlisted:
-    "bg-yellow-100 text-yellow-700",
-
-  "Interview Scheduled":
-    "bg-purple-100 text-purple-700",
-
-  Selected:
-    "bg-green-100 text-green-700",
-
-  Rejected:
-    "bg-red-100 text-red-700",
-};
-
-export default function RecentApplications({
-  applications,
-}) {
+export default function RecentApplications({ applications }) {
   return (
-    <div className="bg-white rounded-xl shadow border">
-
-      <div className="p-5 border-b">
-
-        <h2 className="text-xl font-bold">
-          Recent Applications
-        </h2>
-
-      </div>
-
-      <table className="w-full">
-
-        <thead className="bg-gray-50">
-
-          <tr>
-
-            <th className="text-left p-4">
-              Job
-            </th>
-
-            <th className="text-left p-4">
-              Applied
-            </th>
-
-            <th className="text-left p-4">
-              Status
-            </th>
-
-          </tr>
-
-        </thead>
-
-        <tbody>
-
-          {applications.map((app) => (
-
-            <tr
-              key={app.id}
-              className="border-t"
-            >
-
-              <td className="p-4">
-                {app.job_title}
-              </td>
-
-              <td className="p-4">
-                {new Date(
-                  app.applied_at
-                ).toLocaleDateString()}
-              </td>
-
-              <td className="p-4">
-
-                <span
-                  className={`px-3 py-1 rounded-full text-sm ${
-                    badge[
-                      app.status
-                    ]
-                  }`}
-                >
-                  {app.status}
-                </span>
-
-              </td>
-
+    <div className="space-y-3">
+      <h2 className="text-[17px] font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+        Recent applications
+      </h2>
+      <TableShell>
+        <Table>
+          <THead>
+            <tr>
+              <Th>Job</Th>
+              <Th>Applied</Th>
+              <Th>Status</Th>
             </tr>
-
-          ))}
-
-        </tbody>
-
-      </table>
-
+          </THead>
+          <TBody>
+            {applications.length === 0 ? (
+              <Tr>
+                <Td
+                  colSpan={3}
+                  className="py-10 text-center text-[var(--color-ink-secondary)]"
+                >
+                  No applications yet.
+                </Td>
+              </Tr>
+            ) : (
+              applications.map((app) => (
+                <Tr key={app.id}>
+                  <Td className="font-semibold">{app.job_title}</Td>
+                  <Td className="text-[var(--color-ink-secondary)]">
+                    {new Date(app.applied_at).toLocaleDateString()}
+                  </Td>
+                  <Td>
+                    <Badge status={app.status}>{app.status}</Badge>
+                  </Td>
+                </Tr>
+              ))
+            )}
+          </TBody>
+        </Table>
+      </TableShell>
     </div>
   );
 }

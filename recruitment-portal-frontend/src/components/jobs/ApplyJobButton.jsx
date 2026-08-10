@@ -1,23 +1,12 @@
 import { useRef, useState } from "react";
 import { toast } from "react-toastify";
-import { FaCheckCircle, FaPaperPlane, FaFileUpload } from "react-icons/fa";
+import { CheckCircle2, Send, Upload } from "lucide-react";
 
 import { applyToJob } from "../../api/applicantApi";
+import Button from "../ui/Button";
+import Badge from "../ui/Badge";
 
-const badgeColor = {
-  Applied: "bg-blue-100 text-blue-700",
-  Shortlisted: "bg-yellow-100 text-yellow-700",
-  "Interview Scheduled":
-    "bg-purple-100 text-purple-700",
-  Selected: "bg-green-100 text-green-700",
-  Rejected: "bg-red-100 text-red-700",
-};
-
-export default function ApplyJobButton({
-  job,
-  application,
-  onApplied,
-}) {
+export default function ApplyJobButton({ job, application, onApplied }) {
   const [loading, setLoading] = useState(false);
   const [selectedFile, setSelectedFile] = useState(null);
   const fileInputRef = useRef(null);
@@ -25,110 +14,68 @@ export default function ApplyJobButton({
   const handleApply = async () => {
     try {
       setLoading(true);
-
       await applyToJob(job.id, selectedFile);
-
-      toast.success(
-        "Application submitted successfully!"
-      );
-
+      toast.success("Application submitted successfully!");
       if (onApplied) {
         await onApplied();
       }
     } catch (err) {
       console.error(err);
-
-      toast.error(
-        err?.response?.data?.detail ||
-          "Failed to apply."
-      );
+      toast.error(err?.response?.data?.detail || "Failed to apply.");
     } finally {
       setLoading(false);
     }
   };
 
-  // Already Applied
   if (application) {
     return (
-      <div className="space-y-4">
-
-        <div className="flex items-center gap-3 rounded-xl bg-green-50 border border-green-200 p-4">
-
-          <FaCheckCircle
-            className="text-green-600"
-            size={24}
-          />
-
+      <div className="space-y-3">
+        <div className="flex items-center gap-3 rounded-[16px] border border-[rgba(52,199,89,0.25)] bg-[var(--color-success-soft)] px-4 py-3.5">
+          <CheckCircle2 size={20} className="text-[#1f8f45]" />
           <div>
-
-            <h3 className="font-bold text-green-700">
+            <h3 className="font-semibold text-[#1f8f45]">
               You have already applied
             </h3>
-
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-[var(--color-ink-secondary)]">
               Current application status
             </p>
-
           </div>
-
         </div>
-
-        <div className="flex justify-between items-center">
-
-          <span
-            className={`px-4 py-2 rounded-full font-semibold text-sm ${
-              badgeColor[
-                application.status
-              ] ||
-              "bg-gray-100 text-gray-700"
-            }`}
-          >
-            {application.status}
-          </span>
-
-          <button
-            disabled
-            className="px-6 py-3 rounded-xl bg-gray-300 text-gray-600 cursor-not-allowed font-semibold"
-          >
-            Already Applied
-          </button>
-
+        <div className="flex items-center justify-between gap-3">
+          <Badge status={application.status}>{application.status}</Badge>
+          <Button disabled variant="outline">
+            Already applied
+          </Button>
         </div>
-
       </div>
     );
   }
 
-  // Not Applied
   return (
     <div className="space-y-3">
-      <div className="rounded-xl border border-dashed border-blue-300 bg-blue-50 p-3">
-        <label className="flex cursor-pointer items-center justify-between gap-2 text-sm text-blue-700">
-          <span className="flex items-center gap-2">
-            <FaFileUpload />
-            {selectedFile ? selectedFile.name : "Upload resume for this application"}
-          </span>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept=".pdf,.doc,.docx"
-            className="hidden"
-            onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
-          />
-        </label>
-      </div>
-
       <button
-        onClick={handleApply}
-        disabled={loading}
-        className="w-full flex justify-center items-center gap-3 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white py-4 rounded-xl text-lg font-semibold transition"
+        type="button"
+        onClick={() => fileInputRef.current?.click()}
+        className="pressable flex w-full items-center justify-between gap-3 rounded-[16px] border border-dashed border-[rgba(0,113,227,0.35)] bg-[var(--color-brand-soft)] px-4 py-3.5 text-left text-sm font-medium text-[var(--color-brand)]"
       >
-        <FaPaperPlane />
-
-        {loading
-          ? "Submitting..."
-          : "Apply Now"}
+        <span className="inline-flex items-center gap-2">
+          <Upload size={16} />
+          {selectedFile
+            ? selectedFile.name
+            : "Upload resume for this application"}
+        </span>
       </button>
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".pdf,.doc,.docx"
+        className="hidden"
+        onChange={(e) => setSelectedFile(e.target.files?.[0] || null)}
+      />
+      <Button className="w-full" onClick={handleApply} disabled={loading}>
+        <Send size={16} />
+        {loading ? "Submitting…" : "Apply now"}
+      </Button>
     </div>
   );
 }

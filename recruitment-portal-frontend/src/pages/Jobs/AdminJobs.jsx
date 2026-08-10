@@ -1,34 +1,34 @@
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
+import { Plus } from "lucide-react";
 import JobDrawer from "../../components/drawers/JobDrawer";
 import CreateJobDrawer from "../../components/drawers/CreateJobDrawer";
 import EditJobDrawer from "../../components/drawers/EditJobDrawer";
-import { createJob, updateJob,getJobs } from "../../api/jobsApi";
-
+import { createJob, updateJob, getJobs } from "../../api/jobsApi";
+import PageHeader from "../../components/ui/PageHeader";
+import Button from "../../components/ui/Button";
+import { Input, Select } from "../../components/ui/Input";
+import {
+  TableShell,
+  Table,
+  THead,
+  Th,
+  TBody,
+  Tr,
+  Td,
+} from "../../components/ui/Table";
+import { TableLoadingRow } from "../../components/ui/LoadingState";
 
 export default function Jobs() {
   const [jobs, setJobs] = useState([]);
-
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
-
-  const [departmentFilter, setDepartmentFilter] =
-    useState("");
-
-  const [typeFilter, setTypeFilter] =
-    useState("");
-
-  const [selectedJob, setSelectedJob] =
-    useState(null);
-  
-  const [showCreateDrawer, setShowCreateDrawer] =
-    useState(false);
-
-  const [showEditDrawer, setShowEditDrawer] =
-    useState(false);
-
-  const [editingJob, setEditingJob] =
-    useState(null);
-  
+  const [departmentFilter, setDepartmentFilter] = useState("");
+  const [typeFilter, setTypeFilter] = useState("");
+  const [selectedJob, setSelectedJob] = useState(null);
+  const [showCreateDrawer, setShowCreateDrawer] = useState(false);
+  const [showEditDrawer, setShowEditDrawer] = useState(false);
+  const [editingJob, setEditingJob] = useState(null);
   const [creating, setCreating] = useState(false);
   const [updating, setUpdating] = useState(false);
 
@@ -38,48 +38,34 @@ export default function Jobs() {
 
   const loadJobs = async () => {
     try {
+      setLoading(true);
       const response = await getJobs();
-
       setJobs(response.data);
     } catch (error) {
       console.error(error);
+      toast.error("Failed to load jobs");
+    } finally {
+      setLoading(false);
     }
   };
 
   const departments = [
-    ...new Set(
-      jobs
-        .map((job) => job.department)
-        .filter(Boolean)
-    ),
+    ...new Set(jobs.map((job) => job.department).filter(Boolean)),
   ];
 
   const employmentTypes = [
-    ...new Set(
-      jobs
-        .map((job) => job.employment_type)
-        .filter(Boolean)
-    ),
+    ...new Set(jobs.map((job) => job.employment_type).filter(Boolean)),
   ];
 
   const handleCreateJob = async (data) => {
-    console.log("JOB PAYLOAD:", data);
-
     try {
       setCreating(true);
-
-      const response = await createJob(data);
-
-      console.log("API RESPONSE:", response.data);
-
+      await createJob(data);
       toast.success("Job created successfully");
-
       await loadJobs();
-
       setShowCreateDrawer(false);
     } catch (error) {
       console.error(error);
-
       toast.error("Failed to create job");
     } finally {
       setCreating(false);
@@ -89,21 +75,14 @@ export default function Jobs() {
   const handleUpdateJob = async (jobId, data) => {
     try {
       setUpdating(true);
-
       await updateJob(jobId, data);
-
       toast.success("Job updated successfully");
-
       await loadJobs();
-
       setShowEditDrawer(false);
-
       setEditingJob(null);
-
       setSelectedJob(null);
     } catch (error) {
       console.error(error);
-
       toast.error("Failed to update job");
     } finally {
       setUpdating(false);
@@ -111,192 +90,109 @@ export default function Jobs() {
   };
 
   const filteredJobs = jobs.filter((job) => {
-    const matchesSearch =
-      job.title
-        ?.toLowerCase()
-        .includes(search.toLowerCase());
-
+    const matchesSearch = job.title
+      ?.toLowerCase()
+      .includes(search.toLowerCase());
     const matchesDepartment =
-      !departmentFilter ||
-      job.department === departmentFilter;
-
-    const matchesType =
-      !typeFilter ||
-      job.employment_type === typeFilter;
-
-    return (
-      matchesSearch &&
-      matchesDepartment &&
-      matchesType
-    );
+      !departmentFilter || job.department === departmentFilter;
+    const matchesType = !typeFilter || job.employment_type === typeFilter;
+    return matchesSearch && matchesDepartment && matchesType;
   });
 
   return (
     <>
       <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col lg:flex-row lg:justify-between lg:items-center gap-4">
-          <h1 className="text-4xl font-bold text-slate-800">
-            Jobs
-          </h1>
+        <PageHeader
+          title="Jobs"
+          description="Create, refine, and publish open roles."
+          actions={
+            <Button onClick={() => setShowCreateDrawer(true)}>
+              <Plus size={18} />
+              Create job
+            </Button>
+          }
+        />
 
-          <div className="flex flex-wrap gap-3">
-            {/* Search */}
-            <input
-              type="text"
-              placeholder="Search jobs..."
-              value={search}
-              onChange={(e) =>
-                setSearch(e.target.value)
-              }
-              className="border border-slate-200 rounded-xl px-4 py-2 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-
-            {/* Department Filter */}
-            <select
-              value={departmentFilter}
-              onChange={(e) =>
-                setDepartmentFilter(
-                  e.target.value
-                )
-              }
-              className="border border-slate-200 rounded-xl px-4 py-2 bg-white"
-            >
-              <option value="">
-                All Departments
+        <div className="flex flex-col gap-3 rounded-[18px] border border-[var(--color-line)] bg-white/80 p-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <Input
+            type="text"
+            placeholder="Search jobs…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="sm:max-w-xs"
+          />
+          <Select
+            value={departmentFilter}
+            onChange={(e) => setDepartmentFilter(e.target.value)}
+            className="sm:max-w-[200px]"
+          >
+            <option value="">All departments</option>
+            {departments.map((department) => (
+              <option key={department} value={department}>
+                {department}
               </option>
-
-              {departments.map(
-                (department) => (
-                  <option
-                    key={department}
-                    value={department}
-                  >
-                    {department}
-                  </option>
-                )
-              )}
-            </select>
-
-            {/* Employment Type Filter */}
-            <select
-              value={typeFilter}
-              onChange={(e) =>
-                setTypeFilter(
-                  e.target.value
-                )
-              }
-              className="border border-slate-200 rounded-xl px-4 py-2 bg-white"
-            >
-              <option value="">
-                All Types
+            ))}
+          </Select>
+          <Select
+            value={typeFilter}
+            onChange={(e) => setTypeFilter(e.target.value)}
+            className="sm:max-w-[180px]"
+          >
+            <option value="">All types</option>
+            {employmentTypes.map((type) => (
+              <option key={type} value={type}>
+                {type}
               </option>
-
-              {employmentTypes.map(
-                (type) => (
-                  <option
-                    key={type}
-                    value={type}
-                  >
-                    {type}
-                  </option>
-                )
-              )}
-            </select>
-
-            {/* Create Job Button */}
-            <button onClick={() => setShowCreateDrawer(true)} className="bg-blue-600 text-white px-5 py-2 rounded-xl hover:bg-blue-700 transition">
-              + Create Job
-            </button>
-          </div>
+            ))}
+          </Select>
         </div>
 
-        {/* Jobs Table */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-          <table className="w-full text-sm">
-            <thead>
-              <tr className="bg-slate-50 border-b">
-                <th className="text-left p-4 font-semibold">
-                  Title
-                </th>
-
-                <th className="text-left p-4 font-semibold">
-                  Department
-                </th>
-
-                <th className="text-left p-4 font-semibold">
-                  Type
-                </th>
-
-                <th className="text-left p-4 font-semibold">
-                  Experience
-                </th>
-
-                <th className="text-left p-4 font-semibold">
-                  Actions
-                </th>
+        <TableShell>
+          <Table>
+            <THead>
+              <tr>
+                <Th>Title</Th>
+                <Th>Department</Th>
+                <Th>Type</Th>
+                <Th>Experience</Th>
               </tr>
-            </thead>
-
-            <tbody>
-              {filteredJobs.length === 0 ? (
-                <tr>
-                  <td
-                    colSpan="5"
-                    className="text-center py-8 text-gray-500"
+            </THead>
+            <TBody>
+              {loading ? (
+                <TableLoadingRow colSpan={4} label="Loading jobs…" />
+              ) : filteredJobs.length === 0 ? (
+                <Tr>
+                  <Td
+                    colSpan={4}
+                    className="py-12 text-center text-[var(--color-ink-secondary)]"
                   >
                     No jobs found
-                  </td>
-                </tr>
+                  </Td>
+                </Tr>
               ) : (
                 filteredJobs.map((job) => (
-                  <tr
-                    key={job.id}
-                    className="border-b hover:bg-slate-50 transition"
-                  >
-                    <td className="p-4 font-medium">
-                      {job.title}
-                    </td>
-
-                    <td className="p-4">
+                  <Tr key={job.id} onClick={() => setSelectedJob(job)}>
+                    <Td className="font-semibold">{job.title}</Td>
+                    <Td className="text-[var(--color-ink-secondary)]">
                       {job.department}
-                    </td>
-
-                    <td className="p-4">
+                    </Td>
+                    <Td className="text-[var(--color-ink-secondary)]">
                       {job.employment_type}
-                    </td>
-
-                    <td className="p-4">
-                      {
-                        job.experience_required
-                      }{" "}
-                      Years
-                    </td>
-
-                    <td className="p-4">
-                      <button
-                        onClick={() =>
-                          setSelectedJob(job)
-                        }
-                        className="text-blue-600 hover:text-blue-800 font-medium"
-                      >
-                        View
-                      </button>
-                    </td>
-                  </tr>
+                    </Td>
+                    <Td className="text-[var(--color-ink-secondary)]">
+                      {job.experience_required} years
+                    </Td>
+                  </Tr>
                 ))
               )}
-            </tbody>
-          </table>
-        </div>
+            </TBody>
+          </Table>
+        </TableShell>
       </div>
 
-      {/* Drawer */}
       <JobDrawer
         job={selectedJob}
-        onClose={() =>
-          setSelectedJob(null)
-        }
+        onClose={() => setSelectedJob(null)}
         onEdit={(job) => {
           setEditingJob(job);
           setShowEditDrawer(true);
@@ -304,10 +200,9 @@ export default function Jobs() {
       />
       <CreateJobDrawer
         isOpen={showCreateDrawer}
-        onClose={() =>
-          setShowCreateDrawer(false)
-        }
+        onClose={() => setShowCreateDrawer(false)}
         onSubmit={handleCreateJob}
+        loading={creating}
       />
       <EditJobDrawer
         isOpen={showEditDrawer}
@@ -317,6 +212,7 @@ export default function Jobs() {
         }}
         onSubmit={handleUpdateJob}
         job={editingJob}
+        loading={updating}
       />
     </>
   );

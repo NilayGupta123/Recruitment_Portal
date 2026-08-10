@@ -52,7 +52,8 @@ async def check_database_connection() -> Tuple[bool, str]:
     logger.info("Performing database health check for %s", target)
 
     try:
-        conn = await asyncpg.connect(dsn)
+        # Disable prepared statements for Supabase/PgBouncer transaction poolers.
+        conn = await asyncpg.connect(dsn, statement_cache_size=0)
     except Exception as exc:  # pragma: no cover - depends on environment
         logger.error("Database health check failed while connecting to %s: %s", target, exc, exc_info=True)
         return False, f"database connection failed to {target}: {exc}"

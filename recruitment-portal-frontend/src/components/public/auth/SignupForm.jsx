@@ -10,19 +10,16 @@ import {
   CheckCircle,
   XCircle,
 } from "lucide-react";
-
 import { signup } from "../../../api/authApi";
+import Button from "../../ui/Button";
+import Card from "../../ui/Card";
+import { Field, Input, Label } from "../../ui/Input";
 
 export default function SignupForm() {
   const navigate = useNavigate();
-
   const [loading, setLoading] = useState(false);
-
   const [showPassword, setShowPassword] = useState(false);
-
-  const [showConfirmPassword, setShowConfirmPassword] =
-    useState(false);
-
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [formData, setFormData] = useState({
     full_name: "",
     email: "",
@@ -31,26 +28,21 @@ export default function SignupForm() {
   });
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const passwordStrength = () => {
     let score = 0;
-
     if (formData.password.length >= 8) score++;
     if (/[A-Z]/.test(formData.password)) score++;
     if (/[0-9]/.test(formData.password)) score++;
     if (/[^A-Za-z0-9]/.test(formData.password)) score++;
-
     return score;
   };
 
   const strength = passwordStrength();
-
   const getStrengthText = () => {
+    if (!formData.password) return "Enter a password";
     if (strength <= 1) return "Weak";
     if (strength === 2) return "Fair";
     if (strength === 3) return "Good";
@@ -59,273 +51,159 @@ export default function SignupForm() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
-    if (
-      formData.password !== formData.confirm_password
-    ) {
+    if (formData.password !== formData.confirm_password) {
       alert("Passwords do not match");
       return;
     }
-
     try {
       setLoading(true);
-
       await signup({
         full_name: formData.full_name,
         email: formData.email,
         password: formData.password,
       });
-
       alert("Account created successfully!");
-
       navigate("/login");
     } catch (err) {
       console.error(err);
-
-      alert(
-        err.response?.data?.detail ||
-          "Unable to create account."
-      );
+      alert(err.response?.data?.detail || "Unable to create account.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="bg-white rounded-3xl shadow-lg p-10">
-
-      <h2 className="text-3xl font-bold mb-8">
-        Create Account
+    <Card className="p-7 sm:p-9">
+      <h2 className="text-2xl font-semibold tracking-[-0.025em] text-[var(--color-ink)]">
+        Create account
       </h2>
+      <p className="mt-2 text-sm text-[var(--color-ink-secondary)]">
+        A few details and you’re in.
+      </p>
 
-      <form
-        onSubmit={handleSubmit}
-        className="space-y-6"
-      >
-
-        {/* Name */}
-
-        <div>
-
-          <label className="block font-medium mb-2">
-
-            Full Name
-
-          </label>
-
+      <form onSubmit={handleSubmit} className="mt-7 space-y-5">
+        <Field>
+          <Label htmlFor="full_name">Full name</Label>
           <div className="relative">
-
             <User
-              className="absolute left-4 top-4 text-gray-400"
-              size={20}
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-ink-tertiary)]"
+              size={18}
             />
-
-            <input
+            <Input
+              id="full_name"
               type="text"
               name="full_name"
               required
               value={formData.full_name}
               onChange={handleChange}
-              placeholder="John Doe"
-              className="w-full border rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-blue-600 outline-none"
+              placeholder="Jane Doe"
+              className="pl-11"
             />
-
           </div>
+        </Field>
 
-        </div>
-
-        {/* Email */}
-
-        <div>
-
-          <label className="block font-medium mb-2">
-
-            Email
-
-          </label>
-
+        <Field>
+          <Label htmlFor="email">Email</Label>
           <div className="relative">
-
             <Mail
-              className="absolute left-4 top-4 text-gray-400"
-              size={20}
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-ink-tertiary)]"
+              size={18}
             />
-
-            <input
+            <Input
+              id="email"
               type="email"
               name="email"
               required
               value={formData.email}
               onChange={handleChange}
-              placeholder="john@example.com"
-              className="w-full border rounded-xl py-3 pl-12 pr-4 focus:ring-2 focus:ring-blue-600 outline-none"
+              placeholder="jane@example.com"
+              className="pl-11"
             />
-
           </div>
+        </Field>
 
-        </div>
-
-        {/* Password */}
-
-        <div>
-
-          <label className="block font-medium mb-2">
-
-            Password
-
-          </label>
-
+        <Field>
+          <Label htmlFor="password">Password</Label>
           <div className="relative">
-
             <Lock
-              className="absolute left-4 top-4 text-gray-400"
-              size={20}
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-ink-tertiary)]"
+              size={18}
             />
-
-            <input
-              type={
-                showPassword ? "text" : "password"
-              }
+            <Input
+              id="password"
+              type={showPassword ? "text" : "password"}
               name="password"
               required
               value={formData.password}
               onChange={handleChange}
-              placeholder="********"
-              className="w-full border rounded-xl py-3 pl-12 pr-12 focus:ring-2 focus:ring-blue-600 outline-none"
+              placeholder="••••••••"
+              className="px-11"
             />
-
             <button
               type="button"
-              onClick={() =>
-                setShowPassword(!showPassword)
-              }
-              className="absolute right-4 top-4"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-[var(--color-ink-tertiary)] hover:bg-black/[0.04]"
             >
-              {showPassword ? (
-                <EyeOff size={20} />
-              ) : (
-                <Eye size={20} />
-              )}
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
-
           </div>
-
-          {/* Password Strength */}
-
-          <div className="mt-3 flex items-center gap-2">
-
+          <div className="mt-2.5 flex items-center gap-2 text-sm text-[var(--color-ink-secondary)]">
             {strength >= 3 ? (
-              <CheckCircle
-                className="text-green-600"
-                size={18}
-              />
+              <CheckCircle className="text-[var(--color-success)]" size={16} />
             ) : (
-              <XCircle
-                className="text-red-500"
-                size={18}
-              />
+              <XCircle className="text-[var(--color-danger)]" size={16} />
             )}
-
-            <span className="text-sm">
-
-              Password Strength:{" "}
-              <strong>{getStrengthText()}</strong>
-
+            <span>
+              Strength: <strong className="text-[var(--color-ink)]">{getStrengthText()}</strong>
             </span>
-
           </div>
+        </Field>
 
-        </div>
-
-        {/* Confirm Password */}
-
-        <div>
-
-          <label className="block font-medium mb-2">
-
-            Confirm Password
-
-          </label>
-
+        <Field>
+          <Label htmlFor="confirm_password">Confirm password</Label>
           <div className="relative">
-
             <Lock
-              className="absolute left-4 top-4 text-gray-400"
-              size={20}
+              className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-[var(--color-ink-tertiary)]"
+              size={18}
             />
-
-            <input
-              type={
-                showConfirmPassword
-                  ? "text"
-                  : "password"
-              }
+            <Input
+              id="confirm_password"
+              type={showConfirmPassword ? "text" : "password"}
               name="confirm_password"
               required
               value={formData.confirm_password}
               onChange={handleChange}
-              placeholder="********"
-              className="w-full border rounded-xl py-3 pl-12 pr-12 focus:ring-2 focus:ring-blue-600 outline-none"
+              placeholder="••••••••"
+              className="px-11"
             />
-
             <button
               type="button"
-              onClick={() =>
-                setShowConfirmPassword(
-                  !showConfirmPassword
-                )
-              }
-              className="absolute right-4 top-4"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full p-1.5 text-[var(--color-ink-tertiary)] hover:bg-black/[0.04]"
             >
-              {showConfirmPassword ? (
-                <EyeOff size={20} />
-              ) : (
-                <Eye size={20} />
-              )}
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
             </button>
-
           </div>
+        </Field>
 
-        </div>
-
-        {/* Submit */}
-
-        <button
-          disabled={loading}
-          className="w-full bg-orange-500 hover:bg-orange-600 transition text-white py-4 rounded-xl font-semibold flex justify-center items-center gap-3 disabled:opacity-50"
-        >
-
+        <Button type="submit" variant="accent" className="w-full" disabled={loading}>
           {loading ? (
             <>
-              <Loader2
-                className="animate-spin"
-                size={20}
-              />
-
-              Creating Account...
-
+              <Loader2 className="animate-spin" size={18} />
+              Creating account…
             </>
           ) : (
-            "Create Account"
+            "Create account"
           )}
-
-        </button>
-
+        </Button>
       </form>
 
-      <div className="mt-8 text-center text-gray-600">
-
+      <p className="mt-7 text-center text-sm text-[var(--color-ink-secondary)]">
         Already have an account?{" "}
-
-        <Link
-          to="/login"
-          className="text-blue-600 font-semibold hover:underline"
-        >
-          Login
+        <Link to="/login" className="font-semibold text-[var(--color-brand)] hover:underline">
+          Sign in
         </Link>
-
-      </div>
-
-    </div>
+      </p>
+    </Card>
   );
 }

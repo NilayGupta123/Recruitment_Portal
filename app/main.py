@@ -17,6 +17,7 @@ from app.routers import applicant
 from app.routers import public
 from app.services.healthcheck import check_database_connection, check_s3_connection, run_startup_health_checks
 
+from app.routers import ai
 from fastapi.middleware.cors import CORSMiddleware
 
 logger = logging.getLogger(__name__)
@@ -81,3 +82,4 @@ app.include_router(campaign.router)
 app.include_router(applicant_detail.router)
 app.include_router(applicant.router)
 app.include_router(public.router)
+app.include_router(ai.router)

@@ -1,143 +1,86 @@
-import {ArrowLeft, Briefcase, MapPin, Clock3, Calendar, Building2} from "lucide-react";
+import {
+  ArrowLeft,
+  Briefcase,
+  MapPin,
+  Clock3,
+  Building2,
+} from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import Badge from "../../ui/Badge";
+
 export default function JobHero({ job }) {
   const navigate = useNavigate();
 
+  const stats = [
+    { icon: Building2, label: "Department", value: job.department },
+    { icon: Briefcase, label: "Job type", value: job.employment_type },
+    { icon: MapPin, label: "Location", value: job.location || "India" },
+    {
+      icon: Clock3,
+      label: "Experience",
+      value:
+        job.experience_required != null
+          ? `${job.experience_required} years`
+          : "Flexible",
+    },
+  ];
+
+  const plainDescription =
+    typeof job.description === "string"
+      ? job.description.replace(/<[^>]+>/g, " ").slice(0, 220)
+      : "";
+
   return (
-    <section className="relative overflow-hidden">
+    <section className="relative overflow-hidden pt-20">
+      <div className="absolute inset-0 bg-gradient-to-br from-[#0b1220] via-[#0a3d91] to-[#5e5ce6]" />
+      <div className="absolute -right-24 -top-24 h-80 w-80 rounded-full bg-[rgba(0,113,227,0.35)] blur-3xl" />
+      <div className="absolute -left-16 bottom-0 h-72 w-72 rounded-full bg-[rgba(255,159,10,0.22)] blur-3xl" />
 
-      {/* Background */}
-
-      <div className="absolute inset-0 bg-gradient-to-r from-slate-900 via-blue-900 to-indigo-900" />
-
-      {/* Decorative circles */}
-
-      <div className="absolute -top-32 -right-32 w-96 h-96 rounded-full bg-blue-600/20 blur-3xl" />
-
-      <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full bg-orange-500/20 blur-3xl" />
-
-      <div className="relative max-w-7xl mx-auto px-6 py-28">
-
-        {/* Back */}
-
+      <div className="relative mx-auto max-w-7xl px-5 py-16 sm:px-6 sm:py-20">
         <button
-          onClick={() => navigate(-1)}
-          className="flex items-center gap-2 text-white/80 hover:text-white transition mb-10"
+          type="button"
+          onClick={() => navigate("/careers")}
+          className="pressable mb-8 inline-flex items-center gap-2 text-sm font-medium text-white/75 hover:text-white"
         >
-          <ArrowLeft size={18} />
-
-          Back to Careers
+          <ArrowLeft size={16} />
+          Back to careers
         </button>
 
-        <div className="grid lg:grid-cols-3 gap-12 items-center">
-
-          {/* Left */}
-
-          <div className="lg:col-span-2">
-
-            <span className="bg-orange-500 text-white px-5 py-2 rounded-full text-sm font-semibold">
-
-              NOW HIRING
-
-            </span>
-
-            <h1 className="text-5xl lg:text-6xl font-extrabold text-white mt-8 leading-tight">
-
-              {job.title}
-
-            </h1>
-
-            <p className="mt-6 text-xl text-slate-200 leading-9">
-
-              {job.description}
-
+        <div className="max-w-3xl">
+          <Badge tone="accent" className="bg-[rgba(255,159,10,0.2)] text-[#ffd60a]">
+            Now hiring
+          </Badge>
+          <h1 className="mt-5 text-[clamp(2.2rem,5vw,3.75rem)] font-semibold tracking-[-0.04em] text-white">
+            {job.title}
+          </h1>
+          {plainDescription && (
+            <p className="mt-5 max-w-2xl text-lg leading-8 text-white/75">
+              {plainDescription}
+              {job.description?.length > 220 ? "…" : ""}
             </p>
-
-            {/* Stats */}
-
-            <div className="grid md:grid-cols-2 xl:grid-cols-4 gap-5 mt-12">
-
-              <div className="bg-white/10 backdrop-blur rounded-2xl p-5">
-
-                <div className="flex items-center gap-3 text-orange-400">
-
-                  <Building2 size={22} />
-
-                  Department
-
-                </div>
-
-                <p className="text-white font-semibold mt-3">
-
-                  {job.department}
-
-                </p>
-
-              </div>
-
-              <div className="bg-white/10 backdrop-blur rounded-2xl p-5">
-
-                <div className="flex items-center gap-3 text-orange-400">
-
-                  <Briefcase size={22} />
-
-                  Job Type
-
-                </div>
-
-                <p className="text-white font-semibold mt-3">
-
-                  {job.employment_type}
-
-                </p>
-
-              </div>
-
-              <div className="bg-white/10 backdrop-blur rounded-2xl p-5">
-
-                <div className="flex items-center gap-3 text-orange-400">
-
-                  <MapPin size={22} />
-
-                  Location
-
-                </div>
-
-                <p className="text-white font-semibold mt-3">
-
-                  {job.location || "India"}
-
-                </p>
-
-              </div>
-
-              <div className="bg-white/10 backdrop-blur rounded-2xl p-5">
-
-                <div className="flex items-center gap-3 text-orange-400">
-
-                  <Clock3 size={22} />
-
-                  Experience
-
-                </div>
-
-                <p className="text-white font-semibold mt-3">
-
-                  {job.experience_required} Years
-
-                </p>
-
-              </div>
-
-            </div>
-
-          </div>
-
-
+          )}
         </div>
 
+        <div className="mt-10 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+          {stats.map((item) => {
+            const Icon = item.icon;
+            return (
+              <div
+                key={item.label}
+                className="rounded-2xl border border-white/15 bg-white/10 p-4 backdrop-blur-xl"
+              >
+                <div className="flex items-center gap-2 text-sm font-medium text-[#ffd60a]">
+                  <Icon size={16} />
+                  {item.label}
+                </div>
+                <p className="mt-2 text-[15px] font-semibold text-white">
+                  {item.value || "—"}
+                </p>
+              </div>
+            );
+          })}
+        </div>
       </div>
-
     </section>
   );
 }

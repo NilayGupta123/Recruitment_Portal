@@ -6,14 +6,14 @@ import API from "../../api/axios";
 import ProfileCard from "../../components/profile/ProfileCard";
 import EditProfileModal from "../../components/profile/EditProfileModal";
 import ChangePasswordCard from "../../components/profile/ChangePasswordCard";
+import PageHeader from "../../components/ui/PageHeader";
+import Card, { CardBody, CardHeader } from "../../components/ui/Card";
+import Badge from "../../components/ui/Badge";
 
 export default function Profile() {
   const [profile, setProfile] = useState(null);
-
   const [loading, setLoading] = useState(true);
-
-  const [showEditModal, setShowEditModal] =
-    useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -22,11 +22,9 @@ export default function Profile() {
   const loadProfile = async () => {
     try {
       const response = await API.get("/auth/me");
-
       setProfile(response.data);
     } catch (error) {
       console.error(error);
-
       toast.error("Failed to load profile");
     } finally {
       setLoading(false);
@@ -35,27 +33,20 @@ export default function Profile() {
 
   const handleProfileUpdate = async (data) => {
     try {
-      await API.put(
-        `/users/put/${profile.id}`,
-        data
-      );
-
+      await API.put(`/users/put/${profile.id}`, data);
       toast.success("Profile updated");
-
       await loadProfile();
-
       setShowEditModal(false);
     } catch (error) {
       console.error(error);
-
       toast.error("Failed to update profile");
     }
   };
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-[70vh]">
-        Loading...
+      <div className="flex h-[70vh] items-center justify-center text-[var(--color-ink-secondary)]">
+        Loading…
       </div>
     );
   }
@@ -63,127 +54,76 @@ export default function Profile() {
   return (
     <>
       <div className="space-y-6">
+        <PageHeader
+          title="My profile"
+          description="Manage your personal information and account settings."
+        />
 
-        {/* Page Header */}
-
-        <div>
-
-          <h1 className="text-3xl font-bold text-slate-800">
-            My Profile
-          </h1>
-
-          <p className="text-gray-500 mt-1">
-            Manage your personal information and account settings.
-          </p>
-
-        </div>
-
-        {/* Top Cards */}
-
-        <div className="grid grid-cols-12 gap-6">
-
-          <div className="col-span-7">
-
+        <div className="grid grid-cols-12 gap-5">
+          <div className="col-span-12 lg:col-span-7">
             <ProfileCard
               profile={profile}
-              onEdit={() =>
-                setShowEditModal(true)
-              }
+              onEdit={() => setShowEditModal(true)}
             />
-
           </div>
-
-          <div className="col-span-5">
-
-            <ChangePasswordCard
-              userId={profile.id}
-            />
-
+          <div className="col-span-12 lg:col-span-5">
+            <ChangePasswordCard userId={profile.id} />
           </div>
-
         </div>
 
-        {/* Account Information */}
-
-        <div className="bg-white rounded-2xl shadow-sm border p-6">
-
-          <h2 className="text-xl font-semibold mb-6">
-            Account Information
-          </h2>
-
-          <div className="grid grid-cols-2 gap-6">
-
-            <div>
-
-              <p className="text-gray-500 text-sm">
-                User ID
-              </p>
-
-              <p className="font-semibold mt-1">
-                #{profile.id}
-              </p>
-
+        <Card>
+          <CardHeader>
+            <h2 className="text-xl font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+              Account information
+            </h2>
+          </CardHeader>
+          <CardBody>
+            <div className="grid gap-5 sm:grid-cols-2">
+              <div className="rounded-[16px] border border-[var(--color-line)] bg-[var(--color-canvas)] px-4 py-3.5">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
+                  User ID
+                </p>
+                <p className="mt-1.5 font-semibold text-[var(--color-ink)]">
+                  #{profile.id}
+                </p>
+              </div>
+              <div className="rounded-[16px] border border-[var(--color-line)] bg-[var(--color-canvas)] px-4 py-3.5">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
+                  Account type
+                </p>
+                <div className="mt-1.5">
+                  <Badge tone="brand">{profile.user_type}</Badge>
+                </div>
+              </div>
+              <div className="rounded-[16px] border border-[var(--color-line)] bg-[var(--color-canvas)] px-4 py-3.5">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
+                  Created at
+                </p>
+                <p className="mt-1.5 font-semibold text-[var(--color-ink)]">
+                  {new Date(profile.created_at).toLocaleString()}
+                </p>
+              </div>
+              <div className="rounded-[16px] border border-[var(--color-line)] bg-[var(--color-canvas)] px-4 py-3.5">
+                <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
+                  Updated at
+                </p>
+                <p className="mt-1.5 font-semibold text-[var(--color-ink)]">
+                  {profile.updated_at
+                    ? new Date(profile.updated_at).toLocaleString()
+                    : "—"}
+                </p>
+              </div>
             </div>
-
-            <div>
-
-              <p className="text-gray-500 text-sm">
-                Account Type
-              </p>
-
-              <p className="font-semibold mt-1">
-                {profile.user_type}
-              </p>
-
-            </div>
-
-            <div>
-
-              <p className="text-gray-500 text-sm">
-                Created At
-              </p>
-
-              <p className="font-semibold mt-1">
-                {new Date(
-                  profile.created_at
-                ).toLocaleString()}
-              </p>
-
-            </div>
-
-            <div>
-
-              <p className="text-gray-500 text-sm">
-                Updated At
-              </p>
-
-              <p className="font-semibold mt-1">
-                {profile.updated_at
-                  ? new Date(
-                      profile.updated_at
-                    ).toLocaleString()
-                  : "-"}
-              </p>
-
-            </div>
-
-          </div>
-
-        </div>
-
+          </CardBody>
+        </Card>
       </div>
-
-      {/* Edit Profile */}
 
       <EditProfileModal
         isOpen={showEditModal}
         profile={profile}
-        onClose={() =>
-          setShowEditModal(false)
-        }
+        onClose={() => setShowEditModal(false)}
         onSubmit={handleProfileUpdate}
       />
-
     </>
   );
 }

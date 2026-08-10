@@ -1,8 +1,11 @@
 import { useEffect, useState } from "react";
-
+import { Sparkles } from "lucide-react";
 import JobMultiSelect from "../jobs/JobMultiSelect";
-
+import GenerateDescriptionModal from "../ai/GenerateDescriptionModal";
 import { getCampaignJobs } from "../../api/campaignJobApi";
+import Drawer from "../ui/Drawer";
+import Button from "../ui/Button";
+import { Field, Input, Label, Select, Textarea } from "../ui/Input";
 
 export default function EditCampaignDrawer({
   isOpen,
@@ -11,6 +14,8 @@ export default function EditCampaignDrawer({
   campaign,
   loading,
 }) {
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
+
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -21,7 +26,6 @@ export default function EditCampaignDrawer({
   });
 
   const [selectedJobs, setSelectedJobs] = useState([]);
-
   const [loadingJobs, setLoadingJobs] = useState(false);
 
   useEffect(() => {
@@ -42,13 +46,10 @@ export default function EditCampaignDrawer({
   const loadCampaignJobs = async () => {
     try {
       setLoadingJobs(true);
-
       const response = await getCampaignJobs(campaign.id);
-
       const mappedJobs = response.data.map((job) => ({
         job_id: job.id,
       }));
-
       setSelectedJobs(mappedJobs);
     } catch (error) {
       console.error(error);
@@ -58,228 +59,166 @@ export default function EditCampaignDrawer({
   };
 
   const handleChange = (e) => {
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [e.target.name]: e.target.value,
-    });
+    }));
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    onSubmit(
-      campaign.id,
-      formData,
-      selectedJobs
-    );
+    onSubmit(campaign.id, formData, selectedJobs);
   };
 
-  if (!isOpen || !campaign) return null;
-
   return (
-    <div className="fixed inset-0 bg-black/40 flex justify-end z-50">
-
-      <div className="w-[700px] h-full bg-white shadow-xl overflow-y-auto">
-
-        {/* Header */}
-
-        <div className="flex justify-between items-center p-6 border-b">
-
-          <h2 className="text-2xl font-bold">
-            Edit Campaign
-          </h2>
-
-          <button
-            onClick={onClose}
-            className="text-2xl text-gray-500 hover:text-red-500"
-          >
-            ✕
-          </button>
-
-        </div>
-
-        {/* Form */}
-
+    <>
+      <Drawer
+        open={isOpen && !!campaign}
+        onClose={onClose}
+        title="Edit campaign"
+        subtitle={campaign?.title}
+        width="lg"
+        footer={
+          <div className="flex gap-2.5">
+            <Button variant="outline" className="flex-1" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button
+              type="submit"
+              form="edit-campaign-form"
+              className="flex-1"
+              disabled={loading}
+            >
+              {loading ? "Updating…" : "Update campaign"}
+            </Button>
+          </div>
+        }
+      >
         <form
+          id="edit-campaign-form"
           onSubmit={handleSubmit}
-          className="p-6 space-y-6"
+          className="space-y-5"
         >
-
-          {/* Title */}
-
-          <div>
-
-            <label className="block mb-2 font-medium">
-              Title
-            </label>
-
-            <input
+          <Field>
+            <Label htmlFor="edit-campaign-title">Title</Label>
+            <Input
+              id="edit-campaign-title"
               type="text"
               name="title"
               value={formData.title}
               onChange={handleChange}
-              className="w-full border rounded-xl px-4 py-3"
             />
+          </Field>
 
-          </div>
-
-          {/* Location */}
-
-          <div>
-
-            <label className="block mb-2 font-medium">
-              Location
-            </label>
-
-            <input
+          <Field>
+            <Label htmlFor="edit-campaign-location">Location</Label>
+            <Input
+              id="edit-campaign-location"
               type="text"
               name="location"
               value={formData.location}
               onChange={handleChange}
-              className="w-full border rounded-xl px-4 py-3"
             />
-
-          </div>
-
-          {/* Jobs */}
+          </Field>
 
           <div>
-
-            <h3 className="font-semibold text-lg mb-3">
+            <p className="mb-3 text-[13px] font-semibold tracking-[-0.01em] text-[var(--color-ink-secondary)]">
               Jobs
-            </h3>
-
+            </p>
             {loadingJobs ? (
-
-              <div className="text-gray-500">
-                Loading jobs...
-              </div>
-
+              <p className="text-sm text-[var(--color-ink-secondary)]">
+                Loading jobs…
+              </p>
             ) : (
-
               <JobMultiSelect
                 selectedJobs={selectedJobs}
                 setSelectedJobs={setSelectedJobs}
               />
-
             )}
-
           </div>
 
-          {/* Status */}
-
-          <div>
-
-            <label className="block mb-2 font-medium">
-              Status
-            </label>
-
-            <select
+          <Field>
+            <Label htmlFor="edit-campaign-status">Status</Label>
+            <Select
+              id="edit-campaign-status"
               name="status"
               value={formData.status}
               onChange={handleChange}
-              className="w-full border rounded-xl px-4 py-3"
             >
-              <option value="DRAFT">
-                Draft
-              </option>
+              <option value="DRAFT">Draft</option>
+              <option value="PUBLISHED">Published</option>
+              <option value="CLOSED">Closed</option>
+            </Select>
+          </Field>
 
-              <option value="PUBLISHED">
-                Published
-              </option>
-
-              <option value="CLOSED">
-                Closed
-              </option>
-
-            </select>
-
-          </div>
-
-          {/* Dates */}
-
-          <div className="grid grid-cols-2 gap-4">
-
-            <div>
-
-              <label className="block mb-2 font-medium">
-                Start Date
-              </label>
-
-              <input
+          <div className="grid grid-cols-2 gap-3">
+            <Field>
+              <Label htmlFor="edit-campaign-start">Start date</Label>
+              <Input
+                id="edit-campaign-start"
                 type="date"
                 name="start_date"
                 value={formData.start_date}
                 onChange={handleChange}
-                className="w-full border rounded-xl px-4 py-3"
               />
-
-            </div>
-
-            <div>
-
-              <label className="block mb-2 font-medium">
-                End Date
-              </label>
-
-              <input
+            </Field>
+            <Field>
+              <Label htmlFor="edit-campaign-end">End date</Label>
+              <Input
+                id="edit-campaign-end"
                 type="date"
                 name="end_date"
                 value={formData.end_date}
                 onChange={handleChange}
-                className="w-full border rounded-xl px-4 py-3"
               />
-
-            </div>
-
+            </Field>
           </div>
 
-          {/* Description */}
-
-          <div>
-
-            <label className="block mb-2 font-medium">
-              Description
-            </label>
-
-            <textarea
-              rows={5}
+          <Field>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <Label htmlFor="edit-campaign-description" className="mb-0">
+                Description
+              </Label>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowDescriptionModal(true)}
+              >
+                <Sparkles size={14} />
+                Generate
+              </Button>
+            </div>
+            <Textarea
+              id="edit-campaign-description"
+              rows={8}
               name="description"
               value={formData.description}
               onChange={handleChange}
-              className="w-full border rounded-xl px-4 py-3 resize-none"
+              className="min-h-[180px] resize-none"
             />
-
-          </div>
-
-          {/* Footer */}
-
-          <div className="flex justify-end gap-3 pt-2">
-
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-5 py-3 border rounded-xl hover:bg-gray-100"
-            >
-              Cancel
-            </button>
-
-            <button
-              type="submit"
-              disabled={loading}
-              className="px-6 py-3 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:opacity-50"
-            >
-              {loading
-                ? "Updating..."
-                : "Update Campaign"}
-            </button>
-
-          </div>
-
+          </Field>
         </form>
+      </Drawer>
 
-      </div>
-
-    </div>
+      <GenerateDescriptionModal
+        isOpen={showDescriptionModal}
+        entity="Campaign"
+        context={{
+          title: formData.title,
+          location: formData.location,
+          status: formData.status,
+          start_date: formData.start_date,
+          end_date: formData.end_date,
+        }}
+        onClose={() => setShowDescriptionModal(false)}
+        onReplace={(description) =>
+          setFormData((prev) => ({
+            ...prev,
+            description,
+          }))
+        }
+      />
+    </>
   );
 }

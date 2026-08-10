@@ -1,4 +1,5 @@
-import { FaBullhorn } from "react-icons/fa";
+import Card from "../ui/Card";
+import Badge from "../ui/Badge";
 
 export default function CampaignList({
   campaigns,
@@ -6,60 +7,42 @@ export default function CampaignList({
   onSelect,
 }) {
   return (
-    <div className="bg-white rounded-xl shadow border h-full">
-
-      <div className="p-4 border-b">
-
-        <h2 className="font-bold text-lg">
+    <Card className="flex h-full flex-col overflow-hidden">
+      <div className="border-b border-[var(--color-line)] px-4 py-4">
+        <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-[var(--color-ink)]">
           Campaigns
         </h2>
-
       </div>
-
-      <div className="overflow-y-auto max-h-[650px]">
-
-        {campaigns.map((campaign) => (
-
-          <button
-            key={campaign.id}
-            onClick={() => onSelect(campaign)}
-            className={`w-full text-left px-4 py-3 border-b hover:bg-blue-50 transition
-
-            ${
-              selectedCampaign?.id === campaign.id
-                ? "bg-blue-100 border-l-4 border-blue-600"
-                : ""
-            }`}
-          >
-
-            <div className="flex items-center gap-3">
-
-              <FaBullhorn className="text-blue-600" />
-
-              <div>
-
-                <div className="font-semibold">
-
+      <div className="custom-scrollbar flex-1 overflow-y-auto">
+        {campaigns.length === 0 ? (
+          <p className="p-6 text-center text-sm text-[var(--color-ink-secondary)]">
+            No campaigns
+          </p>
+        ) : (
+          campaigns.map((campaign) => {
+            const active = selectedCampaign?.id === campaign.id;
+            return (
+              <button
+                key={campaign.id}
+                type="button"
+                onClick={() => onSelect(campaign)}
+                className={`w-full border-b border-[var(--color-line)] px-4 py-3.5 text-left transition ${
+                  active
+                    ? "bg-[var(--color-brand-soft)]"
+                    : "hover:bg-[var(--color-canvas)]"
+                }`}
+              >
+                <p className="font-semibold text-[var(--color-ink)]">
                   {campaign.title}
-
+                </p>
+                <div className="mt-2">
+                  <Badge status={campaign.status}>{campaign.status}</Badge>
                 </div>
-
-                <div className="text-xs text-gray-500">
-
-                  {campaign.status}
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </button>
-
-        ))}
-
+              </button>
+            );
+          })
+        )}
       </div>
-
-    </div>
+    </Card>
   );
 }

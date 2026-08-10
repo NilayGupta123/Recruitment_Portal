@@ -1,103 +1,75 @@
-import {Users, Sparkles, Rocket} from "lucide-react";
+import { Users, Sparkles, Rocket } from "lucide-react";
+import Button from "../ui/Button";
+
 export default function LifeSection() {
   const cards = [
     {
-      icon: <Users size={30} />,
-      title: "Collaborative Culture",
-      desc: "Work with talented people who support each other and celebrate every success.",
+      icon: Users,
+      title: "Collaborative culture",
+      desc: "Work with talented people who support each other and celebrate every win.",
     },
     {
-      icon: <Rocket size={30} />,
-      title: "Career Growth",
-      desc: "Upskill with mentorship, training programs and challenging projects.",
+      icon: Rocket,
+      title: "Career growth",
+      desc: "Upskill with mentorship, training programs, and meaningful projects.",
     },
     {
-      icon: <Sparkles size={30} />,
+      icon: Sparkles,
       title: "Innovation",
-      desc: "Build products that impact thousands of users using modern technologies.",
+      desc: "Build products that impact thousands of users with modern technology.",
     },
   ];
 
   return (
-    <section
-      id="about"
-      className="py-28 bg-white"
-    >
-      <div className="max-w-7xl mx-auto px-6">
-
-        <div className="grid lg:grid-cols-2 gap-20 items-center">
-
-          {/* Left */}
-
+    <section id="about" className="bg-white py-24 sm:py-28">
+      <div className="mx-auto max-w-7xl px-5 sm:px-6">
+        <div className="grid items-center gap-16 lg:grid-cols-2 lg:gap-20">
           <div>
-
-            <p className="uppercase tracking-[4px] text-orange-500 font-semibold mb-4">
+            <p className="mb-4 text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-accent)]">
               Life at RecruitPro
             </p>
-
-            <h2 className="text-5xl font-bold text-slate-900 leading-tight">
-              Work where
-              <br />
-              ideas become
-              <span className="text-blue-700">
-                {" "}
-                reality.
-              </span>
+            <h2 className="text-[clamp(2rem,4vw,3.25rem)] font-semibold tracking-[-0.035em] text-[var(--color-ink)]">
+              Work where ideas become{" "}
+              <span className="text-[var(--color-brand)]">reality.</span>
             </h2>
-
-            <p className="mt-8 text-gray-600 text-lg leading-8">
-              We believe people do their best work when
-              they are empowered, challenged and
-              appreciated.
+            <p className="mt-6 max-w-lg text-lg leading-8 text-[var(--color-ink-secondary)]">
+              People do their best work when they are empowered, challenged, and
+              appreciated — every day.
             </p>
-
-            <button className="mt-10 bg-blue-700 hover:bg-blue-800 text-white px-8 py-4 rounded-full font-semibold transition">
-              Explore Careers
-            </button>
-
+            <Button
+              className="mt-9"
+              onClick={() =>
+                document.getElementById("jobs")?.scrollIntoView({ behavior: "smooth" })
+              }
+            >
+              Explore careers
+            </Button>
           </div>
 
-          {/* Right */}
-
-          <div className="grid gap-6">
-
-            {cards.map((card) => (
-
-              <div
-                key={card.title}
-                className="flex gap-5 bg-slate-50 rounded-3xl p-7 hover:shadow-xl transition"
-              >
-
-                <div className="w-16 h-16 rounded-2xl bg-blue-700 text-white flex items-center justify-center">
-
-                  {card.icon}
-
+          <div className="grid gap-4">
+            {cards.map((card) => {
+              const Icon = card.icon;
+              return (
+                <div
+                  key={card.title}
+                  className="flex gap-4 rounded-[22px] border border-[var(--color-line)] bg-[var(--color-canvas)] p-5 transition-shadow hover:shadow-[var(--shadow-soft)] sm:p-6"
+                >
+                  <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[var(--color-brand)] text-white shadow-[0_8px_20px_rgba(0,113,227,0.22)]">
+                    <Icon size={24} />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+                      {card.title}
+                    </h3>
+                    <p className="mt-2 text-[15px] leading-7 text-[var(--color-ink-secondary)]">
+                      {card.desc}
+                    </p>
+                  </div>
                 </div>
-
-                <div>
-
-                  <h3 className="font-bold text-xl">
-
-                    {card.title}
-
-                  </h3>
-
-                  <p className="mt-3 text-gray-600">
-
-                    {card.desc}
-
-                  </p>
-
-                </div>
-
-              </div>
-
-            ))}
-
+              );
+            })}
           </div>
-
         </div>
-
       </div>
     </section>
   );

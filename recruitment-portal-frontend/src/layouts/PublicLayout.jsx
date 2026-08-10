@@ -1,11 +1,10 @@
-import Navbar from '../components/public/Navbar';
-import Footer from '../components/public/Footer';
+import Navbar from "../components/public/Navbar";
+
 export default function PublicLayout({ children }) {
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div className="flex min-h-screen flex-col bg-[var(--color-canvas)]">
       <Navbar />
-      <div style={{ flex: 1 }}>{children}</div>
-
+      <div className="flex-1">{children}</div>
     </div>
   );
 }

@@ -28,14 +28,23 @@ def build_resume_detail_payload(details: ApplicantDetail | None, file_record: Fi
     if details is None:
         return None
 
+    resume_url = None
+    resume_name = None
+    if file_record is not None:
+        resume_name = file_record.file_name
+        storage = S3StorageManager()
+        # Prefer a direct S3 (or still-valid) URL so the browser doesn't hit the Vite host.
+        resume_url = storage.resolve_download_url(file_record.file_link)
+        if not resume_url and file_record.id is not None:
+            # Fall back to API file proxy (frontend must prefix API base URL).
+            resume_url = f"/applicants/files/{file_record.id}"
+
+    # SQLAlchemy instance dict includes internal keys; strip those.
+    raw = {k: v for k, v in details.__dict__.items() if not k.startswith("_")}
     return {
-        **details.__dict__,
-        "resume_file_url": (
-            f"/applicants/files/{file_record.id}"
-            if file_record is not None
-            else None
-        ),
-        "resume_file_name": file_record.file_name if file_record is not None else None,
+        **raw,
+        "resume_file_url": resume_url,
+        "resume_file_name": resume_name,
     }
 
 
@@ -216,20 +225,26 @@ async def get_uploaded_file(file_id: int, db: AsyncSession = Depends(get_db)):
         raise HTTPException(status_code=404, detail="File not found")
 
     file_link = file_record.file_link or ""
-    if file_link.startswith(("http://", "https://")):
-        return RedirectResponse(url=file_link, status_code=307)
-
     storage = S3StorageManager()
+
+    # Always try a fresh S3 signed URL first (works for keys and legacy signed URLs).
+    signed = storage.resolve_download_url(file_link)
+    if signed and signed.startswith(("http://", "https://")):
+        return RedirectResponse(url=signed, status_code=307)
+
+    # Local / fallback stream.
+    key = storage.extract_key_from_url(file_link) or file_link
     try:
-        file_data = storage.get_file(file_link)
+        file_data = storage.get_file(key)
     except FileNotFoundError as exc:
         raise HTTPException(status_code=404, detail="File not found") from exc
 
+    filename = (file_record.file_name or "file").replace('"', "")
     return StreamingResponse(
         BytesIO(file_data["body"]),
         media_type=file_record.file_type or "application/octet-stream",
         headers={
-            "Content-Disposition": f"inline; filename={file_record.file_name or 'file'}"
+            "Content-Disposition": f'inline; filename="{filename}"'
         },
     )
 
@@ -312,7 +327,8 @@ async def apply_to_job(
         db_file = FileRecord(
             file_type=file.content_type or "application/octet-stream",
             file_name=file.filename,
-            file_link=upload_result.get("url") or upload_result.get("key"),
+            # Prefer durable S3 object key over short-lived signed URLs.
+            file_link=upload_result.get("key") or upload_result.get("url"),
         )
         db.add(db_file)
         await db.flush()

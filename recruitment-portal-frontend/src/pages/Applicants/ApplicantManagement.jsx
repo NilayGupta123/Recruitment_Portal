@@ -13,19 +13,17 @@ import CampaignList from "../../components/applicants/CampaignList";
 import JobList from "../../components/applicants/JobList";
 import ApplicantList from "../../components/applicants/ApplicantList";
 import ApplicantDetails from "../../components/applicants/ApplicantDetails";
+import PageHeader from "../../components/ui/PageHeader";
+import LoadingState from "../../components/ui/LoadingState";
 
 export default function Applicants() {
   const [loading, setLoading] = useState(true);
-
   const [campaigns, setCampaigns] = useState([]);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
-
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
-
   const [applicants, setApplicants] = useState([]);
   const [selectedApplicant, setSelectedApplicant] = useState(null);
-
   const [profile, setProfile] = useState(null);
 
   useEffect(() => {
@@ -46,7 +44,6 @@ export default function Applicants() {
 
   const handleCampaignSelect = async (campaign) => {
     setSelectedCampaign(campaign);
-
     setSelectedJob(null);
     setSelectedApplicant(null);
     setProfile(null);
@@ -63,7 +60,6 @@ export default function Applicants() {
 
   const handleJobSelect = async (job) => {
     setSelectedJob(job);
-
     setSelectedApplicant(null);
     setProfile(null);
 
@@ -80,10 +76,7 @@ export default function Applicants() {
     setSelectedApplicant(application);
 
     try {
-      const response = await getApplicantProfile(
-        application.application_id
-      );
-
+      const response = await getApplicantProfile(application.application_id);
       setProfile(response.data);
     } catch (error) {
       console.error(error);
@@ -93,25 +86,19 @@ export default function Applicants() {
 
   const handleStatusUpdate = async (status) => {
     try {
-      await updateApplicantStatus(
-        selectedApplicant.application_id,
-        {
-          status,
-        }
-      );
+      await updateApplicantStatus(selectedApplicant.application_id, {
+        status,
+      });
 
       toast.success("Status updated");
 
       const response = await getApplicantProfile(
         selectedApplicant.application_id
       );
-
       setProfile(response.data);
 
       if (selectedJob) {
-        const applicantsResponse =
-          await getApplicantsByJob(selectedJob.id);
-
+        const applicantsResponse = await getApplicantsByJob(selectedJob.id);
         setApplicants(applicantsResponse.data);
       }
     } catch (error) {
@@ -120,61 +107,46 @@ export default function Applicants() {
     }
   };
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-[70vh]">
-        Loading...
-      </div>
-    );
-  }
-
   return (
     <div className="space-y-6">
+      <PageHeader
+        title="Applicants"
+        description="Browse campaigns, jobs, and applicants."
+      />
 
-      <div>
-        <h1 className="text-3xl font-bold text-slate-800">
-          Applicants
-        </h1>
-
-        <p className="text-gray-500">
-          Browse campaigns, jobs and applicants.
-        </p>
-      </div>
-
-      <div className="grid grid-cols-12 gap-6 h-[75vh]">
-
-        <div className="col-span-3">
-          <CampaignList
-            campaigns={campaigns}
-            selectedCampaign={selectedCampaign}
-            onSelect={handleCampaignSelect}
-          />
+      {loading ? (
+        <LoadingState label="Loading applicants workspace…" rows={8} />
+      ) : (
+        <div className="grid h-[75vh] grid-cols-12 gap-4">
+          <div className="col-span-3 min-h-0">
+            <CampaignList
+              campaigns={campaigns}
+              selectedCampaign={selectedCampaign}
+              onSelect={handleCampaignSelect}
+            />
+          </div>
+          <div className="col-span-3 min-h-0">
+            <JobList
+              jobs={jobs}
+              selectedJob={selectedJob}
+              onSelect={handleJobSelect}
+            />
+          </div>
+          <div className="col-span-3 min-h-0">
+            <ApplicantList
+              applicants={applicants}
+              selectedApplicant={selectedApplicant}
+              onSelect={handleApplicantSelect}
+            />
+          </div>
+          <div className="col-span-3 min-h-0">
+            <ApplicantDetails
+              profile={profile}
+              onStatusUpdate={handleStatusUpdate}
+            />
+          </div>
         </div>
-
-        <div className="col-span-3">
-          <JobList
-            jobs={jobs}
-            selectedJob={selectedJob}
-            onSelect={handleJobSelect}
-          />
-        </div>
-
-        <div className="col-span-3">
-          <ApplicantList
-            applicants={applicants}
-            selectedApplicant={selectedApplicant}
-            onSelect={handleApplicantSelect}
-          />
-        </div>
-
-        <div className="col-span-3">
-          <ApplicantDetails
-            profile={profile}
-            onStatusUpdate={handleStatusUpdate}
-          />
-        </div>
-
-      </div>
+      )}
     </div>
   );
 }

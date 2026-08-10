@@ -1,146 +1,70 @@
 import { useNavigate } from "react-router-dom";
-import {MapPin, Briefcase, Clock3, ArrowRight, Building2} from "lucide-react";
+import { MapPin, Briefcase, Clock3, ArrowRight, Building2 } from "lucide-react";
+import Button from "../ui/Button";
+import Badge from "../ui/Badge";
+
 export default function JobCard({ job }) {
   const navigate = useNavigate();
-  const handleViewDetails = () => {
-    navigate(`/careers/job/${job.id}`);
-  };
+
   return (
-    <div className="group bg-white rounded-3xl border border-slate-200 shadow-sm hover:shadow-2xl hover:-translate-y-2 transition-all duration-300 overflow-hidden">
-
-      {/* Top Banner */}
-
-      <div className="h-2 bg-gradient-to-r from-blue-600 via-indigo-600 to-orange-500" />
-
-      <div className="p-7">
-
-        {/* Department */}
-
-        <div className="flex items-center justify-between">
-
-          <span className="px-4 py-2 bg-blue-100 text-blue-700 rounded-full text-sm font-semibold">
-
-            {job.department || "General"}
-
-          </span>
-
-          <div className="w-12 h-12 rounded-2xl bg-slate-100 flex items-center justify-center">
-
-            <Building2
-              size={22}
-              className="text-blue-700"
-            />
-
+    <article className="group surface-card overflow-hidden transition-all duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]">
+      <div className="h-1.5 bg-gradient-to-r from-[var(--color-brand)] via-[#5e5ce6] to-[var(--color-accent)]" />
+      <div className="p-6 sm:p-7">
+        <div className="flex items-start justify-between gap-3">
+          <Badge tone="brand">{job.department || "General"}</Badge>
+          <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-[var(--color-canvas)] text-[var(--color-brand)]">
+            <Building2 size={20} />
           </div>
-
         </div>
 
-        {/* Title */}
-
-        <h2 className="text-2xl font-bold text-slate-900 mt-6 line-clamp-2">
-
+        <h2 className="mt-5 line-clamp-2 text-[22px] font-semibold tracking-[-0.025em] text-[var(--color-ink)]">
           {job.title}
-
         </h2>
 
-        {/* Description */}
-
-        <p className="text-gray-600 mt-4 leading-7 line-clamp-3">
-
-          {job.description}
-
+        <p className="mt-3 line-clamp-3 text-[15px] leading-7 text-[var(--color-ink-secondary)]">
+          {typeof job.description === "string"
+            ? job.description.replace(/<[^>]+>/g, " ")
+            : "Explore this role and apply in minutes."}
         </p>
 
-        {/* Divider */}
+        <div className="my-6 h-px bg-[var(--color-line)]" />
 
-        <div className="border-t my-7" />
-
-        {/* Details */}
-
-        <div className="space-y-4">
-
-          <div className="flex items-center gap-3 text-gray-700">
-
-            <MapPin
-              size={18}
-              className="text-orange-500"
-            />
-
-            <span>
-
-              {job.location || "India"}
-
-            </span>
-
+        <div className="space-y-3 text-[14px] text-[var(--color-ink-secondary)]">
+          <div className="flex items-center gap-2.5">
+            <MapPin size={16} className="text-[var(--color-accent)]" />
+            <span>{job.location || "India"}</span>
           </div>
-
-          <div className="flex items-center gap-3 text-gray-700">
-
-            <Briefcase
-              size={18}
-              className="text-orange-500"
-            />
-
-            <span>
-
-              {job.employment_type || "Full-Time"}
-
-            </span>
-
+          <div className="flex items-center gap-2.5">
+            <Briefcase size={16} className="text-[var(--color-accent)]" />
+            <span>{job.employment_type || "Full-Time"}</span>
           </div>
-
-          <div className="flex items-center gap-3 text-gray-700">
-
-            <Clock3
-              size={18}
-              className="text-orange-500"
-            />
-
+          <div className="flex items-center gap-2.5">
+            <Clock3 size={16} className="text-[var(--color-accent)]" />
             <span>
-
-              {job.experience_required} Years Experience
-
+              {job.experience_required != null
+                ? `${job.experience_required} years experience`
+                : "Experience flexible"}
             </span>
-
           </div>
-
         </div>
 
-        {/* Footer */}
-
-        <div className="mt-8 flex items-center justify-between">
-
+        <div className="mt-7 flex items-center justify-between gap-3">
           <div>
-
-            <p className="text-xs text-gray-500">
-
+            <p className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
               Company
-
             </p>
-
-            <p className="font-semibold">
-
-              RecruitPro
-
-            </p>
-
+            <p className="text-sm font-semibold text-[var(--color-ink)]">RecruitPro</p>
           </div>
-
-          <button
-            onClick={handleViewDetails}
-            className="flex items-center gap-2 bg-blue-700 hover:bg-blue-800 transition px-6 py-3 rounded-xl text-white font-semibold"
+          <Button
+            size="sm"
+            onClick={() => navigate(`/careers/job/${job.id}`)}
+            className="gap-1.5"
           >
-
-            View Details
-
-            <ArrowRight size={18} />
-
-          </button>
-
+            View details
+            <ArrowRight size={16} />
+          </Button>
         </div>
-
       </div>
-
-    </div>
+    </article>
   );
 }

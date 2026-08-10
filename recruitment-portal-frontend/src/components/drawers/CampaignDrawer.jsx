@@ -1,22 +1,29 @@
 import { useEffect, useState } from "react";
+import { ChevronRight } from "lucide-react";
 import { useAuth } from "../../context/AuthContext";
-
 import JobDrawer from "./JobDrawer";
-
 import { getCampaignJobs } from "../../api/campaignJobApi";
+import Drawer from "../ui/Drawer";
+import Button from "../ui/Button";
+import Badge from "../ui/Badge";
 
-export default function CampaignDrawer({
-  campaign,
-  onClose,
-  onEdit,
-  onEditJob
-}) {
+function Detail({ label, children }) {
+  return (
+    <div className="rounded-[16px] border border-[var(--color-line)] bg-[var(--color-canvas)] px-4 py-3.5">
+      <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
+        {label}
+      </p>
+      <div className="mt-1.5 text-[15px] font-medium text-[var(--color-ink)]">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export default function CampaignDrawer({ campaign, onClose, onEdit, onEditJob }) {
   const { user } = useAuth();
-
   const [jobs, setJobs] = useState([]);
-
   const [selectedJob, setSelectedJob] = useState(null);
-
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -28,11 +35,7 @@ export default function CampaignDrawer({
   const loadCampaignJobs = async () => {
     try {
       setLoading(true);
-
-      const response = await getCampaignJobs(
-        campaign.id
-      );
-
+      const response = await getCampaignJobs(campaign.id);
       setJobs(response.data);
     } catch (error) {
       console.error(error);
@@ -41,189 +44,91 @@ export default function CampaignDrawer({
     }
   };
 
-  if (!campaign) return null;
+  const canManage = user?.user_type === "ADMIN" || user?.user_type === "HR";
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 flex justify-end z-50">
-        <div className="w-[650px] h-full bg-white shadow-xl overflow-y-auto">
-
-          {/* Header */}
-
-          <div className="flex justify-between items-center p-6 border-b">
-
-            <h2 className="text-2xl font-bold">
-              Campaign Details
-            </h2>
-
-            <button
-              onClick={onClose}
-              className="text-2xl text-gray-500 hover:text-red-500"
-            >
-              ✕
-            </button>
-
-          </div>
-
-          {/* Body */}
-
-          <div className="p-6 space-y-6">
-
-            <div>
-              <p className="text-sm text-gray-500">
-                Title
-              </p>
-
-              <p className="text-lg font-semibold">
-                {campaign.title}
-              </p>
+      <Drawer
+        open={!!campaign}
+        onClose={onClose}
+        title="Campaign details"
+        subtitle={campaign?.title}
+        width="lg"
+        footer={
+          canManage ? (
+            <Button className="w-full" onClick={() => onEdit(campaign)}>
+              Edit campaign
+            </Button>
+          ) : null
+        }
+      >
+        {campaign && (
+          <div className="space-y-4">
+            <Detail label="Title">{campaign.title}</Detail>
+            <Detail label="Status">
+              <Badge status={campaign.status}>{campaign.status}</Badge>
+            </Detail>
+            <Detail label="Location">{campaign.location || "N/A"}</Detail>
+            <div className="grid grid-cols-2 gap-3">
+              <Detail label="Start date">{campaign.start_date || "N/A"}</Detail>
+              <Detail label="End date">{campaign.end_date || "N/A"}</Detail>
             </div>
-
-            <div>
-              <p className="text-sm text-gray-500">
-                Status
-              </p>
-
-              <span
-                className={`inline-flex px-3 py-1 rounded-full text-sm font-semibold
-                ${
-                  campaign.status === "PUBLISHED"
-                    ? "bg-green-100 text-green-700"
-                    : campaign.status === "DRAFT"
-                    ? "bg-yellow-100 text-yellow-700"
-                    : "bg-red-100 text-red-700"
-                }`}
-              >
-                {campaign.status}
-              </span>
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">
-                Location
-              </p>
-
-              <p>{campaign.location}</p>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-
-              <div>
-                <p className="text-sm text-gray-500">
-                  Start Date
-                </p>
-
-                <p>{campaign.start_date}</p>
-              </div>
-
-              <div>
-                <p className="text-sm text-gray-500">
-                  End Date
-                </p>
-
-                <p>{campaign.end_date}</p>
-              </div>
-
-            </div>
-
-            <div>
-              <p className="text-sm text-gray-500">
+            <div className="rounded-[16px] border border-[var(--color-line)] bg-white px-4 py-4">
+              <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
                 Description
               </p>
-
-              <p className="whitespace-pre-wrap">
-                {campaign.description}
-              </p>
+              <div
+                className="prose mt-2 max-w-none text-[15px] leading-7 text-[var(--color-ink-secondary)]"
+                dangerouslySetInnerHTML={{
+                  __html:
+                    campaign.description ||
+                    "<p>No description available.</p>",
+                }}
+              />
             </div>
 
-            {/* Jobs */}
-
-            <div>
-
-              <h3 className="text-lg font-semibold mb-3">
-                Jobs in this Campaign
+            <div className="space-y-3 pt-2">
+              <h3 className="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+                Jobs in this campaign
               </h3>
 
               {loading ? (
-
-                <div className="text-gray-500">
-                  Loading jobs...
-                </div>
-
+                <p className="text-sm text-[var(--color-ink-secondary)]">
+                  Loading jobs…
+                </p>
               ) : jobs.length === 0 ? (
-
-                <div className="border rounded-xl p-6 text-center text-gray-500">
+                <div className="rounded-[16px] border border-dashed border-[var(--color-line-strong)] px-4 py-8 text-center text-sm text-[var(--color-ink-secondary)]">
                   No jobs assigned to this campaign.
                 </div>
-
               ) : (
-
-                <div className="space-y-3">
-
+                <div className="space-y-2.5">
                   {jobs.map((job) => (
-
                     <button
                       key={job.id}
-                      onClick={() =>
-                        setSelectedJob(job)
-                      }
-                      className="w-full border rounded-xl p-4 hover:bg-slate-50 transition text-left"
+                      type="button"
+                      onClick={() => setSelectedJob(job)}
+                      className="pressable flex w-full items-center justify-between gap-3 rounded-[16px] border border-[var(--color-line)] bg-[var(--color-surface)] px-4 py-4 text-left transition hover:bg-[var(--color-fill)]"
                     >
-
-                      <div className="flex justify-between items-center">
-
-                        <div>
-
-                          <h4 className="font-semibold text-slate-800">
-                            {job.title}
-                          </h4>
-
-                          <p className="text-sm text-gray-500 mt-1">
-                            {job.department}
-                          </p>
-
-                        </div>
-
-                        <div className="text-blue-600 font-medium">
-                          View →
-                        </div>
-
+                      <div className="min-w-0">
+                        <h4 className="truncate font-semibold text-[var(--color-ink)]">
+                          {job.title}
+                        </h4>
+                        <p className="mt-1 text-sm text-[var(--color-ink-secondary)]">
+                          {job.department || "No department"}
+                        </p>
                       </div>
-
+                      <ChevronRight
+                        size={18}
+                        className="shrink-0 text-[var(--color-ink-tertiary)]"
+                      />
                     </button>
-
                   ))}
-
                 </div>
-
               )}
-
             </div>
-
           </div>
-
-          {/* Footer */}
-
-          {(user?.user_type === "ADMIN" ||
-            user?.user_type === "HR") && (
-
-            <div className="border-t p-6">
-
-              <button
-                onClick={() => onEdit(campaign)}
-                className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl"
-              >
-                Edit Campaign
-              </button>
-
-            </div>
-
-          )}
-
-        </div>
-      </div>
-
-      {/* Job Drawer */}
+        )}
+      </Drawer>
 
       <JobDrawer
         job={selectedJob}
@@ -231,7 +136,7 @@ export default function CampaignDrawer({
         onEdit={(job) => {
           setSelectedJob(null);
           onEditJob(job);
-      }}
+        }}
       />
     </>
   );
