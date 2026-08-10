@@ -108,9 +108,25 @@ Generate a professional {data.entity} description.
         )
 
         try:
-            return json.loads(response.text)
-
-        except json.JSONDecodeError:
+            parsed = json.loads(response.text)
+        except json.JSONDecodeError as exc:
             raise ValueError(
                 "Gemini returned an invalid JSON response."
-            )
+            ) from exc
+
+        # Model sometimes returns a bare list instead of {"questions": [...]}
+        if isinstance(parsed, list):
+            return {"questions": parsed}
+
+        if isinstance(parsed, dict):
+            if isinstance(parsed.get("questions"), list):
+                return {"questions": parsed["questions"]}
+            # Some models nest under other keys
+            for key in ("data", "items", "result"):
+                value = parsed.get(key)
+                if isinstance(value, list):
+                    return {"questions": value}
+
+        raise ValueError(
+            "Gemini response did not include a questions list."
+        )

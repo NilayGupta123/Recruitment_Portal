@@ -174,17 +174,24 @@ async def upload_resume(
     db_file = FileRecord(
         file_type=file.content_type or "application/octet-stream",
         file_name=file.filename,
-        file_link=upload_result.get("url") or upload_result.get("key"),
+        # Prefer durable S3 object key over short-lived signed URLs.
+        file_link=upload_result.get("key") or upload_result.get("url"),
     )
     db.add(db_file)
     await db.flush()
     await db.commit()
     await db.refresh(db_file)
 
+    download_url = (
+        storage.resolve_download_url(db_file.file_link)
+        or upload_result.get("url")
+        or f"/applicants/files/{db_file.id}"
+    )
+
     return UploadResumeResponse(
         file_id=db_file.id,
         file_name=db_file.file_name or file.filename,
-        file_link=db_file.file_link,
+        file_link=download_url,
         message="File uploaded successfully.",
     )
 

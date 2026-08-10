@@ -1,4 +1,4 @@
-from fastapi import APIRouter
+from fastapi import APIRouter, HTTPException
 
 from app.schemas.ai import (
     GenerateDescriptionRequest,
@@ -40,9 +40,16 @@ async def generate_description(
 async def generate_screening_questions(
     payload: GenerateScreeningQuestionsRequest,
 ):
+    try:
+        response = await AIService.generate_screening_questions(
+            payload
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=502, detail=str(exc)) from exc
 
-    response = await AIService.generate_screening_questions(
-        payload
-    )
-
+    # Final guard so response_model always gets an object
+    if isinstance(response, list):
+        return {"questions": response}
+    if isinstance(response, dict) and "questions" not in response:
+        return {"questions": []}
     return response

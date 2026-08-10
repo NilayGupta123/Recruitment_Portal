@@ -144,11 +144,66 @@ class S3StorageManager:
         }
 
     def generate_presigned_url(self, key: str, expires_in: int = 3600) -> Optional[str]:
-        if self.client is None:
+        if self.client is None or not key:
             return None
 
-        return self.client.generate_presigned_url(
-            "get_object",
-            Params={"Bucket": self.bucket_name, "Key": key},
-            ExpiresIn=expires_in,
-        )
+        # Already a full URL (legacy rows that stored temporary signed links).
+        if key.startswith(("http://", "https://")):
+            extracted = self.extract_key_from_url(key)
+            if extracted:
+                key = extracted
+            else:
+                return key
+
+        try:
+            return self.client.generate_presigned_url(
+                "get_object",
+                Params={"Bucket": self.bucket_name, "Key": key},
+                ExpiresIn=expires_in,
+            )
+        except Exception:
+            return None
+
+    @staticmethod
+    def extract_key_from_url(url: str) -> Optional[str]:
+        """Best-effort extract of an S3 object key from a URL or path."""
+        if not url:
+            return None
+        if "://" not in url and not url.startswith("/") and "\\" not in url:
+            # Looks like a bare object key already.
+            return url.lstrip("/")
+
+        try:
+            from urllib.parse import unquote, urlparse
+
+            parsed = urlparse(url)
+            path = unquote(parsed.path or "").lstrip("/")
+            if not path:
+                return None
+
+            # Virtual-hosted–style: bucket.s3.amazonaws.com/key
+            # Path-style: s3.amazonaws.com/bucket/key
+            host = (parsed.netloc or "").lower()
+            if ".s3." in host or host.startswith("s3.") or "amazonaws.com" in host:
+                parts = path.split("/", 1)
+                if host.startswith("s3.") and len(parts) == 2:
+                    return parts[1]
+                return path
+            return path
+        except Exception:
+            return None
+
+    def resolve_download_url(self, file_link: str | None, expires_in: int = 3600) -> Optional[str]:
+        """Return a browser-openable URL for a stored file_link (key or URL)."""
+        if not file_link:
+            return None
+
+        # Prefer a fresh S3 signed URL whenever possible.
+        signed = self.generate_presigned_url(file_link, expires_in=expires_in)
+        if signed:
+            return signed
+
+        if file_link.startswith(("http://", "https://")):
+            return file_link
+
+        return None

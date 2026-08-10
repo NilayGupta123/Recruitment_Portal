@@ -267,6 +267,31 @@ button:disabled,
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand) 28%, transparent);
 }
 
+/* Native select theming (light + dark) */
+.ui-select {
+  color-scheme: light dark;
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+  border-color: var(--color-line-strong);
+}
+
+.ui-select option,
+.ui-select optgroup {
+  background-color: var(--color-surface);
+  color: var(--color-ink);
+}
+
+[data-theme="dark"] .ui-select {
+  color-scheme: dark;
+  background-color: var(--color-surface-muted);
+}
+
+[data-theme="dark"] .ui-select option,
+[data-theme="dark"] .ui-select optgroup {
+  background-color: #1c1c1e;
+  color: #f5f5f7;
+}
+
 .custom-scrollbar::-webkit-scrollbar {
   width: 8px;
   height: 8px;
