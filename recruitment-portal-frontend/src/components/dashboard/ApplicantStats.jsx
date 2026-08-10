@@ -1,83 +1,32 @@
-import {
-  FaFileAlt,
-  FaCheckCircle,
-  FaUserCheck,
-  FaAward,
-} from "react-icons/fa";
+import { FileText, CheckCircle2, CalendarCheck, Award } from "lucide-react";
+import StatCard from "../ui/StatCard";
 
-export default function ApplicantStats({
-  stats,
-}) {
+export default function ApplicantStats({ stats }) {
   const cards = [
-    {
-      title: "Applied Jobs",
-      value: stats.applied,
-      icon: <FaFileAlt />,
-      color: "bg-blue-500",
-    },
-
+    { title: "Applied", value: stats.applied, icon: <FileText size={20} /> },
     {
       title: "Shortlisted",
       value: stats.shortlisted,
-      icon: <FaCheckCircle />,
-      color: "bg-yellow-500",
+      icon: <CheckCircle2 size={20} />,
     },
-
     {
       title: "Interview",
       value: stats.interview,
-      icon: <FaUserCheck />,
-      color: "bg-purple-500",
+      icon: <CalendarCheck size={20} />,
     },
-
-    {
-      title: "Selected",
-      value: stats.selected,
-      icon: <FaAward />,
-      color: "bg-green-500",
-    },
+    { title: "Selected", value: stats.selected, icon: <Award size={20} /> },
   ];
 
   return (
-    <div className="grid grid-cols-4 gap-6">
-
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4">
       {cards.map((card) => (
-
-        <div
+        <StatCard
           key={card.title}
-          className="bg-white rounded-xl shadow border p-6"
-        >
-
-          <div className="flex justify-between">
-
-            <div>
-
-              <p className="text-gray-500">
-
-                {card.title}
-
-              </p>
-
-              <h2 className="text-4xl font-bold mt-2">
-
-                {card.value}
-
-              </h2>
-
-            </div>
-
-            <div
-              className={`${card.color} text-white p-4 rounded-xl`}
-            >
-              {card.icon}
-            </div>
-
-          </div>
-
-        </div>
-
+          title={card.title}
+          value={card.value}
+          icon={card.icon}
+        />
       ))}
-
     </div>
   );
 }

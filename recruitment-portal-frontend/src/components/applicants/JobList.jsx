@@ -1,75 +1,43 @@
-import { FaBriefcase } from "react-icons/fa";
+import Card from "../ui/Card";
 
-export default function JobList({
-  jobs,
-  selectedJob,
-  onSelect,
-}) {
-
+export default function JobList({ jobs, selectedJob, onSelect }) {
   return (
-
-    <div className="bg-white rounded-xl shadow border h-full">
-
-      <div className="p-4 border-b">
-
-        <h2 className="font-bold text-lg">
-
+    <Card className="flex h-full flex-col overflow-hidden">
+      <div className="border-b border-[var(--color-line)] px-4 py-4">
+        <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-[var(--color-ink)]">
           Jobs
-
         </h2>
-
       </div>
-
-      <div className="overflow-y-auto max-h-[650px]">
-
-        {jobs.map((job) => (
-
-          <button
-
-            key={job.id}
-
-            onClick={() => onSelect(job)}
-
-            className={`w-full text-left px-4 py-3 border-b hover:bg-blue-50 transition
-
-            ${
-              selectedJob?.id === job.id
-                ? "bg-blue-100 border-l-4 border-blue-600"
-                : ""
-            }`}
-
-          >
-
-            <div className="flex items-center gap-3">
-
-              <FaBriefcase className="text-green-600" />
-
-              <div>
-
-                <div className="font-semibold">
-
+      <div className="custom-scrollbar flex-1 overflow-y-auto">
+        {jobs.length === 0 ? (
+          <p className="p-6 text-center text-sm text-[var(--color-ink-secondary)]">
+            Select a campaign
+          </p>
+        ) : (
+          jobs.map((job) => {
+            const active = selectedJob?.id === job.id;
+            return (
+              <button
+                key={job.id}
+                type="button"
+                onClick={() => onSelect(job)}
+                className={`w-full border-b border-[var(--color-line)] px-4 py-3.5 text-left transition ${
+                  active
+                    ? "bg-[var(--color-brand-soft)]"
+                    : "hover:bg-[var(--color-canvas)]"
+                }`}
+              >
+                <p className="font-semibold text-[var(--color-ink)]">
                   {job.title}
-
-                </div>
-
-                <div className="text-xs text-gray-500">
-
-                  {job.department}
-
-                </div>
-
-              </div>
-
-            </div>
-
-          </button>
-
-        ))}
-
+                </p>
+                <p className="mt-1 text-xs text-[var(--color-ink-secondary)]">
+                  {job.department || "No department"}
+                </p>
+              </button>
+            );
+          })
+        )}
       </div>
-
-    </div>
-
+    </Card>
   );
-
 }

@@ -5,11 +5,13 @@ const API = axios.create({
 });
 
 API.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
-
-  if (token) {
-    config.headers.Authorization =
-      `Bearer ${token}`;
+  // Don't overwrite an Authorization header already set by the caller
+  // (e.g. login → getCurrentUser with the fresh token).
+  if (!config.headers?.Authorization) {
+    const token = localStorage.getItem("token");
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
   }
 
   return config;

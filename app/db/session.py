@@ -1,6 +1,5 @@
 from __future__ import annotations
 
-from contextlib import asynccontextmanager
 from typing import AsyncGenerator
 
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
@@ -19,8 +18,21 @@ def _ensure_asyncpg(url: str) -> str:
 
 ASYNC_DATABASE_URL = _ensure_asyncpg(settings.database_url)
 
-engine = create_async_engine(ASYNC_DATABASE_URL, echo=settings.debug, future=True)
-AsyncSessionLocal = async_sessionmaker(bind=engine, expire_on_commit=False, autoflush=False)
+# Supabase transaction pooler needs statement_cache_size=0.
+# Avoid pool_pre_ping (extra RTT) and SQL echo in normal runs.
+engine = create_async_engine(
+    ASYNC_DATABASE_URL,
+    echo=False,
+    future=True,
+    pool_pre_ping=False,
+    pool_size=5,
+    max_overflow=5,
+    pool_recycle=280,
+    connect_args={"statement_cache_size": 0},
+)
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine, expire_on_commit=False, autoflush=False
+)
 
 
 async def get_db() -> AsyncGenerator[AsyncSession, None]:

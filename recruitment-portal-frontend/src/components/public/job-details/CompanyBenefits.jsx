@@ -1,75 +1,46 @@
-import {HeartPulse, Laptop, GraduationCap, Plane, Coffee, ShieldCheck} from "lucide-react";
-export default function CompanyBenefits() {
+import {
+  HeartPulse,
+  Laptop,
+  GraduationCap,
+  Plane,
+  Coffee,
+  ShieldCheck,
+} from "lucide-react";
 
+export default function CompanyBenefits() {
   const benefits = [
-    {
-      icon: <HeartPulse size={28} />,
-      title: "Health Insurance",
-    },
-    {
-      icon: <Laptop size={28} />,
-      title: "Hybrid Work",
-    },
-    {
-      icon: <GraduationCap size={28} />,
-      title: "Learning Budget",
-    },
-    {
-      icon: <Plane size={28} />,
-      title: "Paid Leave",
-    },
-    {
-      icon: <Coffee size={28} />,
-      title: "Team Events",
-    },
-    {
-      icon: <ShieldCheck size={28} />,
-      title: "Job Security",
-    },
+    { icon: <HeartPulse size={22} />, title: "Health insurance" },
+    { icon: <Laptop size={22} />, title: "Hybrid work" },
+    { icon: <GraduationCap size={22} />, title: "Learning budget" },
+    { icon: <Plane size={22} />, title: "Paid leave" },
+    { icon: <Coffee size={22} />, title: "Team events" },
+    { icon: <ShieldCheck size={22} />, title: "Job security" },
   ];
 
   return (
-    <section className="bg-white rounded-3xl shadow-sm p-10">
-
-      <h2 className="text-3xl font-bold mb-10">
-
-        Benefits & Perks
-
+    <section className="surface-card p-8 sm:p-10">
+      <h2 className="text-[28px] font-semibold tracking-[-0.03em] text-[var(--color-ink)]">
+        Benefits & perks
       </h2>
 
-      <div className="grid md:grid-cols-2 xl:grid-cols-3 gap-8">
-
+      <div className="mt-8 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {benefits.map((benefit) => (
-
           <div
             key={benefit.title}
-            className="border rounded-2xl p-6 hover:shadow-lg transition"
+            className="rounded-[18px] border border-[var(--color-line)] bg-white p-5 transition hover:shadow-[var(--shadow-lift)]"
           >
-
-            <div className="w-14 h-14 rounded-xl bg-orange-100 text-orange-500 flex items-center justify-center">
-
+            <div className="flex h-12 w-12 items-center justify-center rounded-[14px] bg-[rgba(255,159,10,0.14)] text-[var(--color-accent)]">
               {benefit.icon}
-
             </div>
-
-            <h3 className="font-bold text-xl mt-5">
-
+            <h3 className="mt-4 text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
               {benefit.title}
-
             </h3>
-
-            <p className="text-gray-500 mt-3">
-
+            <p className="mt-2 text-sm leading-6 text-[var(--color-ink-secondary)]">
               We believe happy employees build better products.
-
             </p>
-
           </div>
-
         ))}
-
       </div>
-
     </section>
   );
 }

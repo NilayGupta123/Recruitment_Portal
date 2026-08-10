@@ -1,13 +1,9 @@
-import {Search, MapPin, Briefcase} from "lucide-react";
+import { Search, MapPin, Briefcase } from "lucide-react";
+import Button from "../ui/Button";
+
 export default function Hero() {
   return (
-    <section
-      id="home"
-      className="relative min-h-screen flex items-center"
-    >
-
-      {/* Background */}
-
+    <section id="home" className="relative flex min-h-[92vh] items-center pt-20">
       <div
         className="absolute inset-0 bg-cover bg-center"
         style={{
@@ -15,155 +11,80 @@ export default function Hero() {
             "url('https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=1600')",
         }}
       />
+      <div className="absolute inset-0 bg-gradient-to-b from-[#0b1220]/70 via-[#0b1220]/55 to-[#f5f5f7]" />
 
-      {/* Overlay */}
-
-      <div className="absolute inset-0 bg-slate-900/60" />
-
-      {/* Content */}
-
-      <div className="relative z-10 max-w-7xl mx-auto px-6 w-full">
-
-        <div className="max-w-3xl">
-
-          <p className="uppercase tracking-[6px] text-orange-400 font-semibold mb-6">
-
-            Build Your Future
-
+      <div className="relative z-10 mx-auto w-full max-w-7xl px-5 pb-16 pt-10 sm:px-6">
+        <div className="max-w-3xl animate-rise-in">
+          <p className="mb-5 text-xs font-semibold uppercase tracking-[0.18em] text-[#ffd60a]">
+            Build your future
           </p>
-
-          <h1 className="text-6xl md:text-7xl font-extrabold text-white leading-tight">
-
-            Find Your Dream
+          <h1 className="text-[clamp(2.6rem,6vw,4.5rem)] font-semibold tracking-[-0.04em] text-white">
+            Find work that
             <br />
-
-            Career With Us
-
+            feels like you
           </h1>
-
-          <p className="mt-8 text-xl text-gray-200 leading-8">
-
-            Join a team where innovation,
-            collaboration and growth come
-            together to shape the future.
-
+          <p className="mt-6 max-w-xl text-lg leading-8 text-white/80">
+            Join a team where craft, collaboration, and growth shape every role —
+            from first interview to first day.
           </p>
-
         </div>
 
-        {/* Search Card */}
-
-        <div className="mt-16 bg-white rounded-3xl shadow-2xl p-6">
-
-          <div className="grid lg:grid-cols-4 gap-5">
-
-            {/* Search */}
-
-            <div className="border rounded-2xl px-5 py-4 flex items-center gap-4">
-
-              <Search
-                size={20}
-                className="text-gray-500"
-              />
-
-              <div className="w-full">
-
-                <p className="text-xs text-gray-500">
-
+        <div className="mt-12 rounded-[24px] border border-white/40 bg-white/90 p-4 shadow-[var(--shadow-lift)] backdrop-blur-xl sm:p-5 animate-rise-in">
+          <div className="grid gap-3 lg:grid-cols-[1.2fr_1fr_1fr_auto]">
+            <label className="flex items-center gap-3 rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3.5">
+              <Search size={18} className="text-[var(--color-ink-tertiary)]" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
                   Search
-
-                </p>
-
+                </span>
                 <input
-                  placeholder="Job title"
-                  className="outline-none w-full font-medium"
+                  placeholder="Job title or keyword"
+                  className="w-full bg-transparent text-[15px] font-medium text-[var(--color-ink)] outline-none placeholder:text-[var(--color-ink-tertiary)]"
                 />
+              </span>
+            </label>
 
-              </div>
-
-            </div>
-
-            {/* Location */}
-
-            <div className="border rounded-2xl px-5 py-4 flex items-center gap-4">
-
-              <MapPin
-                size={20}
-                className="text-gray-500"
-              />
-
-              <div className="w-full">
-
-                <p className="text-xs text-gray-500">
-
+            <label className="flex items-center gap-3 rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3.5">
+              <MapPin size={18} className="text-[var(--color-ink-tertiary)]" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
                   Location
-
-                </p>
-
+                </span>
                 <input
                   placeholder="Anywhere"
-                  className="outline-none w-full font-medium"
+                  className="w-full bg-transparent text-[15px] font-medium text-[var(--color-ink)] outline-none placeholder:text-[var(--color-ink-tertiary)]"
                 />
+              </span>
+            </label>
 
-              </div>
-
-            </div>
-
-            {/* Department */}
-
-            <div className="border rounded-2xl px-5 py-4 flex items-center gap-4">
-
-              <Briefcase
-                size={20}
-                className="text-gray-500"
-              />
-
-              <div className="w-full">
-
-                <p className="text-xs text-gray-500">
-
+            <label className="flex items-center gap-3 rounded-2xl border border-[var(--color-line)] bg-white px-4 py-3.5">
+              <Briefcase size={18} className="text-[var(--color-ink-tertiary)]" />
+              <span className="min-w-0 flex-1">
+                <span className="block text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
                   Department
-
-                </p>
-
-                <select className="outline-none w-full font-medium bg-transparent">
-
-                  <option>
-                    All Departments
-                  </option>
-
-                  <option>
-                    Engineering
-                  </option>
-
-                  <option>
-                    HR
-                  </option>
-
-                  <option>
-                    Marketing
-                  </option>
-
+                </span>
+                <select className="w-full bg-transparent text-[15px] font-medium text-[var(--color-ink)] outline-none">
+                  <option>All departments</option>
+                  <option>Engineering</option>
+                  <option>HR</option>
+                  <option>Marketing</option>
                 </select>
+              </span>
+            </label>
 
-              </div>
-
-            </div>
-
-            {/* Button */}
-
-            <button className="rounded-2xl bg-orange-500 hover:bg-orange-600 transition text-white font-semibold text-lg">
-
-              FIND YOUR ROLE
-
-            </button>
-
+            <Button
+              variant="accent"
+              size="lg"
+              className="h-auto min-h-[64px] rounded-2xl px-7"
+              onClick={() => {
+                document.getElementById("jobs")?.scrollIntoView({ behavior: "smooth" });
+              }}
+            >
+              Find roles
+            </Button>
           </div>
-
         </div>
-
       </div>
-
     </section>
   );
 }

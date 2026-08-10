@@ -1,9 +1,22 @@
 import { useEffect, useState } from "react";
+import Card from "../ui/Card";
+import Button from "../ui/Button";
+import { Field, Label, Select } from "../ui/Input";
 
-export default function ApplicantDetails({
-  profile,
-  onStatusUpdate,
-}) {
+function Detail({ label, children }) {
+  return (
+    <div>
+      <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
+        {label}
+      </p>
+      <div className="mt-1.5 text-[15px] font-medium text-[var(--color-ink)]">
+        {children}
+      </div>
+    </div>
+  );
+}
+
+export default function ApplicantDetails({ profile, onStatusUpdate }) {
   const [status, setStatus] = useState("");
 
   useEffect(() => {
@@ -14,98 +27,69 @@ export default function ApplicantDetails({
 
   if (!profile) {
     return (
-      <div className="bg-white rounded-xl shadow border h-full flex items-center justify-center text-gray-500">
-        Select an applicant
-      </div>
+      <Card className="flex h-full items-center justify-center">
+        <p className="text-sm text-[var(--color-ink-secondary)]">
+          Select an applicant
+        </p>
+      </Card>
     );
   }
 
   return (
-    <div className="bg-white rounded-xl shadow border h-full overflow-y-auto">
-      <div className="p-6">
-
-        <h2 className="text-xl font-bold mb-6">
-          Applicant Details
+    <Card className="flex h-full flex-col overflow-hidden">
+      <div className="border-b border-[var(--color-line)] px-4 py-4">
+        <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-[var(--color-ink)]">
+          Applicant details
         </h2>
-
-        <div className="space-y-4">
-
-          <div>
-            <p className="text-gray-500 text-sm">Full Name</p>
-            <p className="font-semibold">
-              {profile.user.full_name}
-            </p>
-          </div>
-
-          <div>
-            <p className="text-gray-500 text-sm">Email</p>
-            <p>{profile.user.email}</p>
-          </div>
-
-          <div>
-            <p className="text-gray-500 text-sm">Phone</p>
-            <p>{profile.user.phone_number || "-"}</p>
-          </div>
-
-          {profile.details?.resume_file_url && (
-            <div>
-              <p className="text-gray-500 text-sm">Resume</p>
-              <a
-                href={profile.details.resume_file_url}
-                target="_blank"
-                rel="noreferrer"
-                className="text-blue-600 hover:text-blue-800 underline break-all"
-              >
-                {profile.details.resume_file_name || "Open resume"}
-              </a>
-            </div>
-          )}
-
-          <div>
-            <p className="text-gray-500 text-sm">Current CTC</p>
-            <p>{profile.details?.current_ctc ?? "-"}</p>
-          </div>
-
-          <div>
-            <p className="text-gray-500 text-sm">Expected CTC</p>
-            <p>{profile.details?.expected_ctc ?? "-"}</p>
-          </div>
-
-          <div>
-            <p className="text-gray-500 text-sm">Experience</p>
-            <p>{profile.details?.experience ?? "-"}</p>
-          </div>
-
-          <div>
-            <p className="text-gray-500 text-sm mb-2">
-              Status
-            </p>
-
-            <select
-              value={status}
-              onChange={(e) => setStatus(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2"
-            >
-              <option value="Applied">Applied</option>
-              <option value="Screening">Screening</option>
-              <option value="Shortlisted">Shortlisted</option>
-              <option value="Interview Scheduled">
-                Interview Scheduled
-              </option>
-              <option value="Selected">Selected</option>
-              <option value="Rejected">Rejected</option>
-            </select>
-          </div>
-
-          <button
-            onClick={() => onStatusUpdate(status)}
-            className="w-full bg-blue-600 hover:bg-blue-700 text-white rounded-lg py-2"
-          >
-            Update Status
-          </button>
-
-        </div>
       </div>
-    </div>
+      <div className="custom-scrollbar flex-1 space-y-4 overflow-y-auto p-4">
+        <Detail label="Full name">{profile.user.full_name}</Detail>
+        <Detail label="Email">{profile.user.email}</Detail>
+        <Detail label="Phone">{profile.user.phone_number || "—"}</Detail>
+
+        {profile.details?.resume_file_url && (
+          <Detail label="Resume">
+            <a
+              href={profile.details.resume_file_url}
+              target="_blank"
+              rel="noreferrer"
+              className="break-all font-semibold text-[var(--color-brand)] hover:underline"
+            >
+              {profile.details.resume_file_name || "Open resume"}
+            </a>
+          </Detail>
+        )}
+
+        <Detail label="Current CTC">
+          {profile.details?.current_ctc ?? "—"}
+        </Detail>
+        <Detail label="Expected CTC">
+          {profile.details?.expected_ctc ?? "—"}
+        </Detail>
+        <Detail label="Experience">
+          {profile.details?.experience ?? "—"}
+        </Detail>
+
+        <Field>
+          <Label htmlFor="applicant-status">Status</Label>
+          <Select
+            id="applicant-status"
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+          >
+            <option value="Applied">Applied</option>
+            <option value="Screening">Screening</option>
+            <option value="Shortlisted">Shortlisted</option>
+            <option value="Interview Scheduled">Interview Scheduled</option>
+            <option value="Selected">Selected</option>
+            <option value="Rejected">Rejected</option>
+          </Select>
+        </Field>
+
+        <Button className="w-full" onClick={() => onStatusUpdate(status)}>
+          Update status
+        </Button>
+      </div>
+    </Card>
   );
 }

@@ -1,4 +1,6 @@
-import { FaUserCircle } from "react-icons/fa";
+import Card from "../ui/Card";
+import Badge from "../ui/Badge";
+import Avatar from "../ui/Avatar";
 
 export default function ApplicantList({
   applicants,
@@ -6,61 +8,53 @@ export default function ApplicantList({
   onSelect,
 }) {
   return (
-    <div className="bg-white rounded-xl shadow border h-full">
-      <div className="p-4 border-b">
-        <h2 className="text-lg font-bold">
+    <Card className="flex h-full flex-col overflow-hidden">
+      <div className="border-b border-[var(--color-line)] px-4 py-4">
+        <h2 className="text-[15px] font-semibold tracking-[-0.01em] text-[var(--color-ink)]">
           Applicants
         </h2>
       </div>
-
-      <div className="overflow-y-auto max-h-[650px]">
+      <div className="custom-scrollbar flex-1 overflow-y-auto">
         {applicants.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
+          <p className="p-6 text-center text-sm text-[var(--color-ink-secondary)]">
             No applicants found
-          </div>
+          </p>
         ) : (
-          applicants.map((applicant) => (
-            <button
-              key={applicant.application_id}
-              onClick={() => onSelect(applicant)}
-              className={`w-full text-left p-4 border-b hover:bg-blue-50 transition ${
-                selectedApplicant?.application_id === applicant.application_id
-                  ? "bg-blue-100 border-l-4 border-blue-600"
-                  : ""
-              }`}
-            >
-              <div className="flex items-center gap-3">
-                <FaUserCircle className="text-2xl text-gray-500" />
-
-                <div className="flex-1">
-                  <div className="font-semibold">
-                    {applicant.full_name}
+          applicants.map((applicant) => {
+            const active =
+              selectedApplicant?.application_id === applicant.application_id;
+            return (
+              <button
+                key={applicant.application_id}
+                type="button"
+                onClick={() => onSelect(applicant)}
+                className={`w-full border-b border-[var(--color-line)] px-4 py-3.5 text-left transition ${
+                  active
+                    ? "bg-[var(--color-brand-soft)]"
+                    : "hover:bg-[var(--color-canvas)]"
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <Avatar name={applicant.full_name} size="sm" />
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate font-semibold text-[var(--color-ink)]">
+                      {applicant.full_name}
+                    </p>
+                    <p className="truncate text-sm text-[var(--color-ink-secondary)]">
+                      {applicant.email}
+                    </p>
+                    <div className="mt-2">
+                      <Badge status={applicant.status}>
+                        {applicant.status}
+                      </Badge>
+                    </div>
                   </div>
-
-                  <div className="text-sm text-gray-500">
-                    {applicant.email}
-                  </div>
-
-                  <span
-                    className={`inline-block mt-2 px-2 py-1 rounded-full text-xs font-medium
-                    ${
-                      applicant.status === "Applied"
-                        ? "bg-blue-100 text-blue-700"
-                        : applicant.status === "Shortlisted"
-                        ? "bg-green-100 text-green-700"
-                        : applicant.status === "Rejected"
-                        ? "bg-red-100 text-red-700"
-                        : "bg-gray-100 text-gray-700"
-                    }`}
-                  >
-                    {applicant.status}
-                  </span>
                 </div>
-              </div>
-            </button>
-          ))
+              </button>
+            );
+          })
         )}
       </div>
-    </div>
+    </Card>
   );
 }

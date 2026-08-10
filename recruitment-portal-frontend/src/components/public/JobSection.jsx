@@ -1,13 +1,16 @@
 import { useEffect, useMemo, useState } from "react";
 import JobCard from "./JobCard";
-import JobFilters from "./JobFilters";
 import { getPublicJobs } from "../../api/publicApi";
+import { Field, Input, Label, Select } from "../ui/Input";
+import EmptyState from "../ui/EmptyState";
+
 export default function JobSection() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("");
   const [employmentType, setEmploymentType] = useState("");
+
   useEffect(() => {
     loadJobs();
   }, []);
@@ -15,15 +18,7 @@ export default function JobSection() {
   const loadJobs = async () => {
     try {
       const res = await getPublicJobs();
-
-      // if API returns array
       setJobs(res.data);
-
-      // If your API returns {jobs:[]}
-      // setJobs(res.data.jobs);
-
-      // If your API returns {items:[]}
-      // setJobs(res.data.items);
     } catch (err) {
       console.error(err);
     } finally {
@@ -34,255 +29,106 @@ export default function JobSection() {
   const filteredJobs = useMemo(() => {
     return jobs.filter((job) => {
       const matchesSearch =
-        !search ||
-        job.title?.toLowerCase().includes(search.toLowerCase());
-
-      const matchesDepartment =
-        !department || job.department === department;
-
+        !search || job.title?.toLowerCase().includes(search.toLowerCase());
+      const matchesDepartment = !department || job.department === department;
       const matchesEmployment =
-        !employmentType ||
-        job.employment_type === employmentType;
-
-      return (
-        matchesSearch &&
-        matchesDepartment &&
-        matchesEmployment
-      );
+        !employmentType || job.employment_type === employmentType;
+      return matchesSearch && matchesDepartment && matchesEmployment;
     });
   }, [jobs, search, department, employmentType]);
 
-  // Generate filter options dynamically
-  const departments = [
-    ...new Set(jobs.map((j) => j.department).filter(Boolean)),
-  ];
-
+  const departments = [...new Set(jobs.map((j) => j.department).filter(Boolean))];
   const employmentTypes = [
     ...new Set(jobs.map((j) => j.employment_type).filter(Boolean)),
   ];
 
-  if (loading) {
-    return (
-      <section
-        id="jobs"
-        className="py-28 bg-slate-100"
-      >
-        <div className="max-w-7xl mx-auto px-6">
-
-          <div className="text-center">
-
-            <h2 className="text-5xl font-bold">
-
-              Loading Jobs...
-
-            </h2>
-
-            <p className="text-gray-500 mt-6">
-
-              Please wait...
-
-            </p>
-
-          </div>
-
-        </div>
-      </section>
-    );
-  }
-
   return (
-    <section
-      id="jobs"
-      className="py-28 bg-slate-100"
-    >
-      <div className="max-w-7xl mx-auto px-6">
-
-        <div className="text-center mb-16">
-
-          <p className="uppercase tracking-[6px] text-orange-500 font-semibold">
-
-            Open Positions
-
+    <section id="jobs" className="bg-white py-24 sm:py-28">
+      <div className="mx-auto max-w-7xl px-5 sm:px-6">
+        <div className="mb-12 text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-accent)]">
+            Open positions
           </p>
-
-          <h2 className="text-5xl font-bold mt-4">
-
-            Find Your Next Opportunity
-
+          <h2 className="mt-4 text-[clamp(2rem,4vw,3.1rem)] font-semibold tracking-[-0.035em] text-[var(--color-ink)]">
+            Find your next opportunity
           </h2>
-
-          <p className="text-gray-600 mt-5 text-lg">
-
-            Explore our latest opportunities.
-
+          <p className="mt-4 text-[16px] text-[var(--color-ink-secondary)]">
+            Explore roles that match your craft and ambition.
           </p>
-
         </div>
 
-        <div className="grid lg:grid-cols-4 gap-10">
-
-          {/* Filters */}
-
-          <div>
-
-            <div className="bg-white rounded-3xl shadow-sm p-7 sticky top-28">
-
-              <h3 className="text-2xl font-bold mb-8">
-
-                Filter Jobs
-
-              </h3>
-
-              <div className="space-y-6">
-
-                <div>
-
-                  <label className="font-semibold">
-
-                    Search
-
-                  </label>
-
-                  <input
-                    value={search}
-                    onChange={(e) =>
-                      setSearch(e.target.value)
-                    }
-                    placeholder="Search..."
-                    className="w-full border rounded-xl px-4 py-3 mt-2"
-                  />
-
+        {loading ? (
+          <div className="rounded-[22px] border border-[var(--color-line)] bg-[var(--color-canvas)] px-6 py-20 text-center">
+            <p className="text-lg font-semibold text-[var(--color-ink)]">Loading roles…</p>
+            <p className="mt-2 text-sm text-[var(--color-ink-secondary)]">
+              Fetching the latest openings.
+            </p>
+          </div>
+        ) : (
+          <div className="grid gap-8 lg:grid-cols-4">
+            <aside>
+              <div className="sticky top-28 surface-card p-6">
+                <h3 className="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+                  Filter roles
+                </h3>
+                <div className="mt-6 space-y-4">
+                  <Field>
+                    <Label>Search</Label>
+                    <Input
+                      value={search}
+                      onChange={(e) => setSearch(e.target.value)}
+                      placeholder="Job title…"
+                    />
+                  </Field>
+                  <Field>
+                    <Label>Department</Label>
+                    <Select
+                      value={department}
+                      onChange={(e) => setDepartment(e.target.value)}
+                    >
+                      <option value="">All departments</option>
+                      {departments.map((dept) => (
+                        <option key={dept} value={dept}>
+                          {dept}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
+                  <Field>
+                    <Label>Employment type</Label>
+                    <Select
+                      value={employmentType}
+                      onChange={(e) => setEmploymentType(e.target.value)}
+                    >
+                      <option value="">All types</option>
+                      {employmentTypes.map((type) => (
+                        <option key={type} value={type}>
+                          {type}
+                        </option>
+                      ))}
+                    </Select>
+                  </Field>
                 </div>
-
-                <div>
-
-                  <label className="font-semibold">
-
-                    Department
-
-                  </label>
-
-                  <select
-                    value={department}
-                    onChange={(e) =>
-                      setDepartment(e.target.value)
-                    }
-                    className="w-full border rounded-xl px-4 py-3 mt-2"
-                  >
-
-                    <option value="">
-
-                      All Departments
-
-                    </option>
-
-                    {departments.map((dept) => (
-
-                      <option
-                        key={dept}
-                        value={dept}
-                      >
-
-                        {dept}
-
-                      </option>
-
-                    ))}
-
-                  </select>
-
-                </div>
-
-                <div>
-
-                  <label className="font-semibold">
-
-                    Employment Type
-
-                  </label>
-
-                  <select
-                    value={employmentType}
-                    onChange={(e) =>
-                      setEmploymentType(e.target.value)
-                    }
-                    className="w-full border rounded-xl px-4 py-3 mt-2"
-                  >
-
-                    <option value="">
-
-                      All Types
-
-                    </option>
-
-                    {employmentTypes.map((type) => (
-
-                      <option
-                        key={type}
-                        value={type}
-                      >
-
-                        {type}
-
-                      </option>
-
-                    ))}
-
-                  </select>
-
-                </div>
-
               </div>
+            </aside>
 
+            <div className="lg:col-span-3">
+              {filteredJobs.length === 0 ? (
+                <EmptyState
+                  title="No roles found"
+                  description="Try adjusting your filters or check back soon for new openings."
+                />
+              ) : (
+                <div className="grid gap-5 md:grid-cols-2">
+                  {filteredJobs.map((job) => (
+                    <JobCard key={job.id} job={job} />
+                  ))}
+                </div>
+              )}
             </div>
-
           </div>
-
-          {/* Job Cards */}
-
-          <div className="lg:col-span-3">
-
-            {filteredJobs.length === 0 ? (
-
-              <div className="bg-white rounded-3xl p-16 text-center shadow">
-
-                <h2 className="text-3xl font-bold">
-
-                  No Jobs Found
-
-                </h2>
-
-                <p className="text-gray-500 mt-5">
-
-                  Try changing the filters.
-
-                </p>
-
-              </div>
-
-            ) : (
-
-              <div className="grid md:grid-cols-2 gap-8">
-
-                {filteredJobs.map((job) => (
-
-                  <JobCard
-                    key={job.id}
-                    job={job}
-                  />
-
-                ))}
-
-              </div>
-
-            )}
-
-          </div>
-
-        </div>
-
+        )}
       </div>
-
     </section>
   );
 }

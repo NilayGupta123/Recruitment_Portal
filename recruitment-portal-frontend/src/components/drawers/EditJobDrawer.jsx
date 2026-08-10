@@ -1,14 +1,12 @@
 import { useEffect, useState } from "react";
+import { Sparkles } from "lucide-react";
 import GenerateDescriptionModal from "../ai/GenerateDescriptionModal";
+import Drawer from "../ui/Drawer";
+import Button from "../ui/Button";
+import { Field, Input, Label, Select, Textarea } from "../ui/Input";
 
-export default function EditJobDrawer({
-  isOpen,
-  onClose,
-  onSubmit,
-  job,
-}) {
-  const [showDescriptionModal, setShowDescriptionModal] =
-    useState(false);
+export default function EditJobDrawer({ isOpen, onClose, onSubmit, job }) {
+  const [showDescriptionModal, setShowDescriptionModal] = useState(false);
 
   const [formData, setFormData] = useState({
     title: "",
@@ -25,8 +23,7 @@ export default function EditJobDrawer({
         description: job.description || "",
         department: job.department || "",
         employment_type: job.employment_type || "",
-        experience_required:
-          job.experience_required || 0,
+        experience_required: job.experience_required || 0,
       });
     }
   }, [job]);
@@ -43,176 +40,99 @@ export default function EditJobDrawer({
     onSubmit(job.id, formData);
   };
 
-  if (!isOpen || !job) return null;
-
   return (
     <>
-      <div className="fixed inset-0 bg-black/40 flex justify-end z-50">
-
-        <div className="w-[600px] bg-white h-full overflow-y-auto shadow-xl">
-
-          {/* Header */}
-
-          <div className="flex justify-between items-center p-6 border-b">
-
-            <h2 className="text-2xl font-bold">
-              Edit Job
-            </h2>
-
-            <button
-              onClick={onClose}
-              className="text-gray-500 hover:text-black"
-            >
-              ✕
-            </button>
-
+      <Drawer
+        open={isOpen && !!job}
+        onClose={onClose}
+        title="Edit job"
+        subtitle={job?.title}
+        width="lg"
+        footer={
+          <div className="flex gap-2.5">
+            <Button variant="outline" className="flex-1" onClick={onClose}>
+              Cancel
+            </Button>
+            <Button type="submit" form="edit-job-form" className="flex-1">
+              Update job
+            </Button>
           </div>
+        }
+      >
+        <form id="edit-job-form" onSubmit={handleSubmit} className="space-y-5">
+          <Field>
+            <Label htmlFor="edit-job-title">Title</Label>
+            <Input
+              id="edit-job-title"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+            />
+          </Field>
 
-          {/* Form */}
+          <Field>
+            <Label htmlFor="edit-job-department">Department</Label>
+            <Input
+              id="edit-job-department"
+              name="department"
+              value={formData.department}
+              onChange={handleChange}
+            />
+          </Field>
 
-          <form
-            onSubmit={handleSubmit}
-            className="p-6 space-y-5"
-          >
-
-            {/* Title */}
-
-            <div>
-
-              <label className="block mb-2 font-medium">
-                Title
-              </label>
-
-              <input
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                className="w-full border rounded-xl px-4 py-3"
-              />
-
-            </div>
-
-            {/* Department */}
-
-            <div>
-
-              <label className="block mb-2 font-medium">
-                Department
-              </label>
-
-              <input
-                name="department"
-                value={formData.department}
-                onChange={handleChange}
-                className="w-full border rounded-xl px-4 py-3"
-              />
-
-            </div>
-
-            {/* Employment Type */}
-
-            <div>
-
-              <label className="block mb-2 font-medium">
-                Employment Type
-              </label>
-
-              <select
-                name="employment_type"
-                value={formData.employment_type}
-                onChange={handleChange}
-                className="w-full border rounded-xl px-4 py-3"
-              >
-                <option value="">
-                  Select Type
-                </option>
-
-                <option value="Full-Time">
-                  Full-Time
-                </option>
-
-                <option value="Part-Time">
-                  Part-Time
-                </option>
-
-                <option value="Internship">
-                  Internship
-                </option>
-
-                <option value="Contract">
-                  Contract
-                </option>
-
-              </select>
-
-            </div>
-
-            {/* Experience */}
-
-            <div>
-
-              <label className="block mb-2 font-medium">
-                Experience Required
-              </label>
-
-              <input
-                type="number"
-                name="experience_required"
-                value={formData.experience_required}
-                onChange={handleChange}
-                className="w-full border rounded-xl px-4 py-3"
-              />
-
-            </div>
-
-            {/* Description */}
-
-            <div>
-
-              <div className="flex items-center justify-between mb-2">
-
-                <label className="font-medium">
-                  Description
-                </label>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    setShowDescriptionModal(true)
-                  }
-                  className="flex items-center gap-2 bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white text-sm px-4 py-2 rounded-lg shadow transition"
-                >
-                  ✨ Generate Description
-                </button>
-
-              </div>
-
-              <textarea
-                rows={8}
-                name="description"
-                value={formData.description}
-                onChange={handleChange}
-                className="w-full border rounded-xl px-4 py-3 resize-none"
-              />
-
-            </div>
-
-            {/* Submit */}
-
-            <button
-              type="submit"
-              className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold"
+          <Field>
+            <Label htmlFor="edit-job-employment">Employment type</Label>
+            <Select
+              id="edit-job-employment"
+              name="employment_type"
+              value={formData.employment_type}
+              onChange={handleChange}
             >
-              Update Job
-            </button>
+              <option value="">Select type</option>
+              <option value="Full-Time">Full-Time</option>
+              <option value="Part-Time">Part-Time</option>
+              <option value="Internship">Internship</option>
+              <option value="Contract">Contract</option>
+            </Select>
+          </Field>
 
-          </form>
+          <Field>
+            <Label htmlFor="edit-job-experience">Experience required</Label>
+            <Input
+              id="edit-job-experience"
+              type="number"
+              name="experience_required"
+              value={formData.experience_required}
+              onChange={handleChange}
+            />
+          </Field>
 
-        </div>
-
-      </div>
-
-      {/* AI Description Modal */}
+          <Field>
+            <div className="mb-2 flex items-center justify-between gap-3">
+              <Label htmlFor="edit-job-description" className="mb-0">
+                Description
+              </Label>
+              <Button
+                type="button"
+                variant="secondary"
+                size="sm"
+                onClick={() => setShowDescriptionModal(true)}
+              >
+                <Sparkles size={14} />
+                Generate
+              </Button>
+            </div>
+            <Textarea
+              id="edit-job-description"
+              rows={8}
+              name="description"
+              value={formData.description}
+              onChange={handleChange}
+              className="min-h-[180px] resize-none"
+            />
+          </Field>
+        </form>
+      </Drawer>
 
       <GenerateDescriptionModal
         isOpen={showDescriptionModal}
@@ -220,14 +140,10 @@ export default function EditJobDrawer({
         context={{
           title: formData.title,
           department: formData.department,
-          employment_type:
-            formData.employment_type,
-          experience_required:
-            formData.experience_required,
+          employment_type: formData.employment_type,
+          experience_required: formData.experience_required,
         }}
-        onClose={() =>
-          setShowDescriptionModal(false)
-        }
+        onClose={() => setShowDescriptionModal(false)}
         onReplace={(description) =>
           setFormData((prev) => ({
             ...prev,
@@ -235,7 +151,6 @@ export default function EditJobDrawer({
           }))
         }
       />
-
     </>
   );
 }

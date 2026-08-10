@@ -1,13 +1,11 @@
 import { useState } from "react";
-import {
-  FaMagic,
-  FaSyncAlt,
-  FaTimes,
-  FaCheck,
-} from "react-icons/fa";
+import { Sparkles, RefreshCw, Check } from "lucide-react";
 import { toast } from "react-toastify";
 
 import { generateDescription } from "../../api/aiApi";
+import Modal from "../ui/Modal";
+import Button from "../ui/Button";
+import { Field, Input, Label, Textarea } from "../ui/Input";
 
 export default function GenerateDescriptionModal({
   isOpen,
@@ -16,38 +14,23 @@ export default function GenerateDescriptionModal({
   entity,
   context,
 }) {
-  const [additionalPrompt, setAdditionalPrompt] =
-    useState("");
-
-  const [generatedDescription, setGeneratedDescription] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(false);
-
-  if (!isOpen) return null;
+  const [additionalPrompt, setAdditionalPrompt] = useState("");
+  const [generatedDescription, setGeneratedDescription] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const handleGenerate = async () => {
     try {
       setLoading(true);
-
-      const res =
-        await generateDescription({
-          entity,
-          context,
-          additional_prompt:
-            additionalPrompt,
-        });
-
-      setGeneratedDescription(
-        res.data.description
-      );
+      const res = await generateDescription({
+        entity,
+        context,
+        additional_prompt: additionalPrompt,
+      });
+      setGeneratedDescription(res.data.description);
     } catch (err) {
       console.error(err);
-
       toast.error(
-        err?.response?.data?.detail ||
-          "Failed to generate description."
+        err?.response?.data?.detail || "Failed to generate description."
       );
     } finally {
       setLoading(false);
@@ -56,242 +39,129 @@ export default function GenerateDescriptionModal({
 
   const handleReplace = () => {
     onReplace(generatedDescription);
+    toast.success(`${entity} description inserted.`);
+    onClose();
+  };
 
-    toast.success(
-      `${entity} description inserted.`
-    );
-
+  const handleClose = () => {
+    setAdditionalPrompt("");
+    setGeneratedDescription("");
+    setLoading(false);
     onClose();
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex justify-center items-center z-50">
-
-      <div className="bg-white rounded-2xl shadow-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
-
-        {/* Header */}
-
-        <div className="flex justify-between items-center border-b px-6 py-5">
-
-          <div>
-
-            <h2 className="text-2xl font-bold text-slate-800">
-              ✨ AI {entity} Description Generator
-            </h2>
-
-            <p className="text-gray-500 mt-1">
-              Generate a professional AI-powered{" "}
-              {entity.toLowerCase()} description.
-            </p>
-
-          </div>
-
-          <button
-            onClick={onClose}
-            className="text-gray-500 hover:text-black transition"
-          >
-            <FaTimes size={22} />
-          </button>
-
+    <Modal
+      open={isOpen}
+      onClose={handleClose}
+      title={`Generate ${entity.toLowerCase()} description`}
+      size="full"
+      footer={
+        <div className="flex flex-col-reverse gap-2.5 sm:flex-row sm:items-center sm:justify-end">
+          <Button variant="outline" onClick={handleClose} className="sm:min-w-[100px]">
+            Cancel
+          </Button>
+          {generatedDescription && (
+            <>
+              <Button
+                variant="secondary"
+                onClick={handleGenerate}
+                disabled={loading}
+                className="sm:min-w-[120px]"
+              >
+                <RefreshCw size={16} className={loading ? "animate-spin" : ""} />
+                Regenerate
+              </Button>
+              <Button onClick={handleReplace} className="sm:min-w-[160px]">
+                <Check size={16} />
+                Use description
+              </Button>
+            </>
+          )}
         </div>
-
-        {/* Body */}
-
-        <div className="grid grid-cols-2 flex-1 min-h-0">
-
-          {/* Left Panel */}
-
-          <div className="border-r p-6 overflow-y-auto space-y-5 min-h-0">
-
-            {Object.entries(context).map(
-              ([key, value]) => (
-                <div key={key}>
-
-                  <label className="block text-sm font-medium mb-2">
-
+      }
+    >
+      <div className="grid gap-5 lg:grid-cols-2 lg:gap-6 lg:items-stretch">
+        <div className="space-y-4">
+          <div className="rounded-[16px] border border-[var(--color-line)] bg-[var(--color-canvas)] p-4">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
+              Context
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              {Object.entries(context).map(([key, value]) => (
+                <Field key={key}>
+                  <Label className="mb-1.5 text-[12px]">
                     {key
                       .replaceAll("_", " ")
-                      .replace(
-                        /\b\w/g,
-                        (c) => c.toUpperCase()
-                      )}
-
-                  </label>
-
-                  <input
+                      .replace(/\b\w/g, (c) => c.toUpperCase())}
+                  </Label>
+                  <Input
                     value={value ?? ""}
                     disabled
-                    className="w-full border rounded-lg px-4 py-3 bg-gray-100"
+                    className="bg-white py-2.5 text-sm"
                   />
+                </Field>
+              ))}
+            </div>
+          </div>
 
-                </div>
-              )
-            )}
+          <Field>
+            <Label>Additional instructions</Label>
+            <Textarea
+              rows={4}
+              value={additionalPrompt}
+              onChange={(e) => setAdditionalPrompt(e.target.value)}
+              placeholder="Professional tone, concise, mention remote work…"
+              className="min-h-[100px] resize-none"
+            />
+          </Field>
 
-            <div>
+          <Button
+            className="w-full"
+            variant="secondary"
+            onClick={handleGenerate}
+            disabled={loading}
+          >
+            <Sparkles size={16} />
+            {loading
+              ? "Generating…"
+              : generatedDescription
+                ? "Regenerate description"
+                : `Generate ${entity.toLowerCase()} description`}
+          </Button>
+        </div>
 
-              <label className="block text-sm font-medium mb-2">
-                Additional Instructions
-              </label>
-
-              <textarea
-                rows={8}
-                value={additionalPrompt}
-                onChange={(e) =>
-                  setAdditionalPrompt(
-                    e.target.value
-                  )
-                }
-                placeholder={`Example:
-
-• Write in a professional tone
-
-• Keep it concise
-
-• Mention remote work
-
-• Include growth opportunities
-
-• Add any special instructions for this ${entity.toLowerCase()}`}
-                className="w-full border rounded-lg px-4 py-3 resize-none focus:ring-2 focus:ring-violet-500"
+        <div className="flex min-h-[240px] flex-col overflow-hidden rounded-[16px] border border-[var(--color-line)] bg-[var(--color-canvas)] lg:min-h-0 lg:max-h-[min(52dvh,480px)]">
+          <div className="shrink-0 border-b border-[var(--color-line)] px-4 py-3">
+            <h3 className="text-[15px] font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+              Preview
+            </h3>
+            <p className="mt-0.5 text-xs text-[var(--color-ink-secondary)]">
+              Review before inserting into the form.
+            </p>
+          </div>
+          <div className="custom-scrollbar min-h-0 flex-1 overflow-y-auto p-4">
+            {generatedDescription ? (
+              <div
+                className="prose prose-sm max-w-none rounded-[14px] border border-[var(--color-line)] bg-white p-4 text-[14px] leading-7 text-[var(--color-ink-secondary)]"
+                dangerouslySetInnerHTML={{ __html: generatedDescription }}
               />
-
-            </div>
-
-            <button
-              onClick={handleGenerate}
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 disabled:bg-gray-400 text-white py-3 rounded-lg font-semibold flex justify-center items-center gap-3 transition"
-            >
-
-              <FaMagic />
-
-              {loading
-                ? "Generating..."
-                : generatedDescription
-                ? `Regenerate ${entity} Description`
-                : `Generate ${entity} Description`}
-
-            </button>
-
-          </div>
-
-          {/* Right Panel */}
-                    <div className="flex flex-col min-h-0">
-
-            {/* Preview Header */}
-
-            <div className="border-b px-6 py-4">
-
-              <h3 className="text-xl font-bold">
-                Generated {entity} Description
-              </h3>
-
-              <p className="text-sm text-gray-500 mt-1">
-                Review the AI generated description before replacing the existing one.
-              </p>
-
-            </div>
-
-            {/* Preview */}
-
-            <div className="flex-1 overflow-y-auto p-6 bg-gray-50">
-
-              {generatedDescription ? (
-
-                <div className="bg-white border rounded-xl p-6 shadow-sm leading-7 prose max-w-none overflow-auto"
-                     dangerouslySetInnerHTML={{
-                        __html: generatedDescription,
-                    }}
-                />
-
-              ) : (
-
-                <div className="h-full flex flex-col justify-center items-center text-center text-gray-400">
-
-                  <FaMagic
-                    size={55}
-                    className="mb-6 text-violet-400"
-                  />
-
-                  <h3 className="text-xl font-semibold text-gray-600">
-                    Nothing Generated Yet
-                  </h3>
-
-                  <p className="mt-3 max-w-md leading-7">
-                    Click{" "}
-                    <span className="font-semibold text-violet-600">
-                      Generate {entity} Description
-                    </span>{" "}
-                    to let AI create a professional description based on the information provided.
-                  </p>
-
-                </div>
-
-              )}
-
-            </div>
-
-          </div>
-
-        </div>
-
-        {/* Footer */}
-
-        <div className="border-t px-6 py-5 flex justify-between items-center bg-white">
-
-          <div className="text-sm text-gray-500">
-
-            AI generated descriptions are editable before saving.
-
-          </div>
-
-          <div className="flex gap-3">
-
-            <button
-              onClick={onClose}
-              className="px-5 py-3 rounded-lg border hover:bg-gray-100 transition"
-            >
-              Cancel
-            </button>
-
-            {generatedDescription && (
-
-              <>
-
-                <button
-                  onClick={handleGenerate}
-                  disabled={loading}
-                  className="px-5 py-3 rounded-lg bg-amber-500 hover:bg-amber-600 disabled:bg-gray-400 text-white flex items-center gap-2 transition"
-                >
-
-                  <FaSyncAlt />
-
-                  Regenerate
-
-                </button>
-
-                <button
-                  onClick={handleReplace}
-                  className="px-5 py-3 rounded-lg bg-green-600 hover:bg-green-700 text-white flex items-center gap-2 transition"
-                >
-
-                  <FaCheck />
-
-                  Replace Description
-
-                </button>
-
-              </>
-
+            ) : (
+              <div className="flex h-full min-h-[180px] flex-col items-center justify-center px-4 text-center">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--color-brand-soft)] text-[var(--color-brand)]">
+                  <Sparkles size={20} />
+                </span>
+                <h3 className="mt-3 text-base font-semibold text-[var(--color-ink)]">
+                  Nothing generated yet
+                </h3>
+                <p className="mt-1.5 max-w-xs text-sm leading-6 text-[var(--color-ink-secondary)]">
+                  Add optional instructions, then generate a description from the job context.
+                </p>
+              </div>
             )}
-
           </div>
-
         </div>
-
       </div>
-
-    </div>
+    </Modal>
   );
 }

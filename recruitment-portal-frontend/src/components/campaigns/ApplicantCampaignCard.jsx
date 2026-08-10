@@ -1,111 +1,44 @@
-import {
-  FaCalendarAlt,
-  FaMapMarkerAlt,
-  FaArrowRight,
-} from "react-icons/fa";
+import { ArrowRight, Calendar, MapPin } from "lucide-react";
+import Card, { CardBody, CardHeader } from "../ui/Card";
+import Button from "../ui/Button";
+import Badge from "../ui/Badge";
 
-const statusColor = {
-  DRAFT: "bg-gray-100 text-gray-700",
-  PUBLISHED: "bg-green-100 text-green-700",
-  CLOSED: "bg-red-100 text-red-700",
-};
+export default function ApplicantCampaignCard({ campaign, onOpen }) {
+  const formatDate = (value) =>
+    value ? new Date(value).toLocaleDateString() : "—";
 
-export default function ApplicantCampaignCard({
-  campaign,
-  onOpen,
-}) {
   return (
-    <div className="bg-white rounded-2xl shadow border hover:shadow-lg transition overflow-hidden">
-
-      {/* Header */}
-
-      <div className="p-6">
-
-        <div className="flex justify-between items-start">
-
-          <div>
-
-            <h2 className="text-xl font-bold text-slate-800">
-              {campaign.title}
-            </h2>
-
-            <p className="text-sm text-gray-500 mt-2 line-clamp-3">
-              {campaign.description ||
-                "No description available."}
-            </p>
-
+    <Card hover className="flex h-full flex-col overflow-hidden">
+      <CardHeader>
+        <div className="min-w-0 flex-1">
+          <h2 className="text-lg font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+            {campaign.title}
+          </h2>
+          <p className="mt-2 line-clamp-3 text-sm leading-6 text-[var(--color-ink-secondary)]">
+            {campaign.description || "No description available."}
+          </p>
+        </div>
+        <Badge status={campaign.status}>{campaign.status}</Badge>
+      </CardHeader>
+      <CardBody className="mt-auto flex flex-1 flex-col justify-end gap-4">
+        <div className="space-y-2.5 text-sm text-[var(--color-ink-secondary)]">
+          <div className="flex items-center gap-2.5">
+            <MapPin size={15} className="text-[var(--color-brand)]" />
+            <span>{campaign.location || "Remote"}</span>
           </div>
-
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-semibold ${
-              statusColor[campaign.status] ||
-              "bg-gray-100 text-gray-700"
-            }`}
-          >
-            {campaign.status}
-          </span>
-
+          <div className="flex items-center gap-2.5">
+            <Calendar size={15} className="text-[var(--color-brand)]" />
+            <span>
+              {formatDate(campaign.start_date)} –{" "}
+              {formatDate(campaign.end_date)}
+            </span>
+          </div>
         </div>
-
-      </div>
-
-      {/* Body */}
-
-      <div className="px-6 pb-5 space-y-3">
-
-        <div className="flex items-center gap-3 text-gray-600">
-
-          <FaMapMarkerAlt className="text-blue-600" />
-
-          <span>
-            {campaign.location || "Remote"}
-          </span>
-
-        </div>
-
-        <div className="flex items-center gap-3 text-gray-600">
-
-          <FaCalendarAlt className="text-green-600" />
-
-          <span>
-
-            {campaign.start_date
-              ? new Date(
-                  campaign.start_date
-                ).toLocaleDateString()
-              : "-"}
-
-            {"  "} - {"  "}
-
-            {campaign.end_date
-              ? new Date(
-                  campaign.end_date
-                ).toLocaleDateString()
-              : "-"}
-
-          </span>
-
-        </div>
-
-      </div>
-
-      {/* Footer */}
-
-      <div className="border-t p-5">
-
-        <button
-          onClick={onOpen}
-          className="w-full flex justify-center items-center gap-3 bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold transition"
-        >
-
-          View Jobs
-
-          <FaArrowRight />
-
-        </button>
-
-      </div>
-
-    </div>
+        <Button className="w-full" onClick={onOpen}>
+          View jobs
+          <ArrowRight size={16} />
+        </Button>
+      </CardBody>
+    </Card>
   );
 }

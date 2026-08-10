@@ -1,103 +1,83 @@
-import {HeartPulse, Laptop, GraduationCap, Plane, Coffee, Shield} from "lucide-react";
+import {
+  HeartPulse,
+  Laptop,
+  GraduationCap,
+  Plane,
+  Coffee,
+  Shield,
+} from "lucide-react";
+
 export default function Benefits() {
   const benefits = [
     {
-      icon: <HeartPulse size={32} />,
+      icon: HeartPulse,
       title: "Healthcare",
-      desc: "Comprehensive medical insurance for employees.",
+      desc: "Comprehensive medical insurance for employees and dependents.",
     },
     {
-      icon: <Laptop size={32} />,
-      title: "Hybrid Work",
-      desc: "Flexible office and remote work culture.",
+      icon: Laptop,
+      title: "Hybrid work",
+      desc: "Flexible office and remote culture built around deep work.",
     },
     {
-      icon: <GraduationCap size={32} />,
+      icon: GraduationCap,
       title: "Learning",
-      desc: "Sponsored certifications and learning budget.",
+      desc: "Sponsored certifications and an annual learning budget.",
     },
     {
-      icon: <Plane size={32} />,
-      title: "Paid Leave",
-      desc: "Generous vacation and parental leave policy.",
+      icon: Plane,
+      title: "Paid leave",
+      desc: "Generous vacation and parental leave so rest is real.",
     },
     {
-      icon: <Coffee size={32} />,
-      title: "Great Culture",
-      desc: "Fun events, hackathons and team outings.",
+      icon: Coffee,
+      title: "Great culture",
+      desc: "Team rituals, hackathons, and moments that build belonging.",
     },
     {
-      icon: <Shield size={32} />,
-      title: "Job Security",
-      desc: "Long-term growth and transparent career path.",
+      icon: Shield,
+      title: "Clear growth",
+      desc: "Transparent career paths with long-term opportunity.",
     },
   ];
 
   return (
-    <section
-      id="benefits"
-      className="py-28 bg-slate-50"
-    >
-      <div className="max-w-7xl mx-auto px-6">
-
-        <div className="text-center">
-
-          <p className="uppercase tracking-[5px] text-orange-500 font-semibold">
-
-            Benefits & Perks
-
+    <section id="benefits" className="bg-[var(--color-canvas)] py-24 sm:py-28">
+      <div className="mx-auto max-w-7xl px-5 sm:px-6">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--color-accent)]">
+            Benefits & perks
           </p>
-
-          <h2 className="text-5xl font-bold mt-4">
-
-            Why You'll Love Working Here
-
+          <h2 className="mt-4 text-[clamp(2rem,4vw,3.1rem)] font-semibold tracking-[-0.035em] text-[var(--color-ink)]">
+            Why you’ll love working here
           </h2>
-
-          <p className="text-gray-600 mt-6 max-w-2xl mx-auto">
-
-            We invest in our people by providing
-            opportunities, flexibility and benefits that
-            help them succeed professionally and
-            personally.
-
+          <p className="mt-5 text-[16px] leading-7 text-[var(--color-ink-secondary)]">
+            We invest in people with flexibility, benefits, and opportunities that
+            support both craft and life outside work.
           </p>
-
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8 mt-20">
-
-          {benefits.map((benefit) => (
-
-            <div
-              key={benefit.title}
-              className="bg-white rounded-3xl p-8 hover:-translate-y-2 hover:shadow-xl transition"
-            >
-
-              <div className="w-16 h-16 rounded-2xl bg-orange-100 text-orange-500 flex items-center justify-center">
-
-                {benefit.icon}
-
+        <div className="mt-14 grid gap-5 md:grid-cols-2 lg:grid-cols-3">
+          {benefits.map((benefit) => {
+            const Icon = benefit.icon;
+            return (
+              <div
+                key={benefit.title}
+                className="surface-card p-7 transition-transform duration-300 hover:-translate-y-1 hover:shadow-[var(--shadow-lift)]"
+              >
+                <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-[rgba(255,159,10,0.14)] text-[var(--color-accent)]">
+                  <Icon size={26} />
+                </div>
+                <h3 className="mt-6 text-xl font-semibold tracking-[-0.02em] text-[var(--color-ink)]">
+                  {benefit.title}
+                </h3>
+                <p className="mt-3 text-[15px] leading-7 text-[var(--color-ink-secondary)]">
+                  {benefit.desc}
+                </p>
               </div>
-
-              <h3 className="font-bold text-2xl mt-6">
-
-                {benefit.title}
-
-              </h3>
-
-              <p className="text-gray-600 mt-4 leading-7">
-
-                {benefit.desc}
-
-              </p>
-
-            </div>
-
-          ))}
-
+            );
+          })}
         </div>
-
       </div>
     </section>
   );

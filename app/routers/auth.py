@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import time
 from datetime import datetime, timedelta
 from typing import Optional
 
@@ -20,6 +21,26 @@ security = HTTPBearer()
 
 # Simple in-memory blacklist for revoked tokens. Replace with persistent store in production.
 token_blacklist: set[str] = set()
+
+# Short TTL cache to avoid an extra Supabase RTT on every protected request.
+_user_cache: dict[int, tuple[float, User]] = {}
+_USER_CACHE_TTL_SECONDS = 45.0
+
+
+def _cache_user(user: User) -> User:
+	_user_cache[user.id] = (time.monotonic(), user)
+	return user
+
+
+def _get_cached_user(user_id: int) -> Optional[User]:
+	entry = _user_cache.get(user_id)
+	if not entry:
+		return None
+	cached_at, user = entry
+	if time.monotonic() - cached_at > _USER_CACHE_TTL_SECONDS:
+		_user_cache.pop(user_id, None)
+		return None
+	return user
 
 # # Password hashing
 # pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -106,17 +127,31 @@ async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(s
 		user_id = int(payload.get("user_id"))
 	except Exception:
 		raise HTTPException(status_code=401, detail="Could not validate credentials")
+
+	cached = _get_cached_user(user_id)
+	if cached is not None:
+		return cached
+
 	result = await db.execute(select(User).where(User.id == user_id))
 	user = result.scalar_one_or_none()
 	if not user:
 		raise HTTPException(status_code=401, detail="User not found")
-	return user
+
+	# Detach so the object is safe to reuse across requests/sessions.
+	db.expunge(user)
+	return _cache_user(user)
 
 
 @router.post("/logout", status_code=status.HTTP_204_NO_CONTENT)
 async def logout(credentials: HTTPAuthorizationCredentials = Depends(security)):
 	token = credentials.credentials
 	token_blacklist.add(token)
+	try:
+		payload = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm])
+		user_id = int(payload.get("user_id"))
+		_user_cache.pop(user_id, None)
+	except Exception:
+		pass
 	return None
 
 

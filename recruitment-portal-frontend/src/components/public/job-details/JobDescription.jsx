@@ -1,4 +1,7 @@
-import {CheckCircle2, Briefcase, GraduationCap, Code2} from "lucide-react";
+import { CheckCircle2, Briefcase, GraduationCap, Code2 } from "lucide-react";
+import Card from "../../ui/Card";
+import Badge from "../../ui/Badge";
+
 export default function JobDescription({ job }) {
   const responsibilities = job.responsibilities
     ? job.responsibilities.split("\n")
@@ -20,120 +23,81 @@ export default function JobDescription({ job }) {
         "Passion for learning new technologies.",
       ];
 
-  const skills = job.skills || [
-    "React",
-    "FastAPI",
-    "Python",
-    "PostgreSQL",
-    "Git",
-    "REST APIs",
-    "Docker",
-    "JavaScript",
-  ];
+  const skills = Array.isArray(job.skills)
+    ? job.skills.map((s) => (typeof s === "string" ? s : s.skill_name)).filter(Boolean)
+    : ["React", "FastAPI", "Python", "PostgreSQL", "Git", "REST APIs"];
 
   return (
-    <div className="space-y-10">
-      {/* About */}
-
-      <section className="bg-white rounded-3xl shadow-sm p-10">
-        <div className="flex items-center gap-3 mb-6">
-          <Briefcase className="text-blue-700" />
-
-          <h2 className="text-3xl font-bold">
-            About the Role
+    <div className="space-y-5">
+      <Card className="p-7 sm:p-8">
+        <div className="mb-5 flex items-center gap-2.5">
+          <Briefcase className="text-[var(--color-brand)]" size={20} />
+          <h2 className="text-2xl font-semibold tracking-[-0.025em] text-[var(--color-ink)]">
+            About the role
           </h2>
         </div>
+        {job.description?.includes("<") ? (
+          <div
+            className="prose max-w-none text-[15px] leading-8 text-[var(--color-ink-secondary)]"
+            dangerouslySetInnerHTML={{ __html: job.description }}
+          />
+        ) : (
+          <p className="text-[15px] leading-8 text-[var(--color-ink-secondary)]">
+            {job.description}
+          </p>
+        )}
+      </Card>
 
-        <p className="text-gray-600 leading-9 text-lg">
-          {job.description}
-        </p>
-
-        <p className="text-gray-600 leading-9 text-lg mt-6">
-          As part of our engineering team, you'll work on
-          real-world products, collaborate with experienced
-          professionals, and build scalable software used
-          by thousands of users.
-        </p>
-      </section>
-
-      {/* Responsibilities */}
-
-      <section className="bg-white rounded-3xl shadow-sm p-10">
-        <h2 className="text-3xl font-bold mb-8">
+      <Card className="p-7 sm:p-8">
+        <h2 className="mb-6 text-2xl font-semibold tracking-[-0.025em] text-[var(--color-ink)]">
           Responsibilities
         </h2>
-
-        <div className="space-y-5">
+        <div className="space-y-4">
           {responsibilities.map((item, index) => (
-            <div
-              key={index}
-              className="flex gap-4"
-            >
-              <CheckCircle2
-                className="text-green-600 mt-1"
-                size={22}
-              />
-
-              <p className="text-gray-700 leading-8">
+            <div key={index} className="flex gap-3">
+              <CheckCircle2 className="mt-0.5 text-[var(--color-success)]" size={18} />
+              <p className="text-[15px] leading-7 text-[var(--color-ink-secondary)]">
                 {item}
               </p>
             </div>
           ))}
         </div>
-      </section>
+      </Card>
 
-      {/* Requirements */}
-
-      <section className="bg-white rounded-3xl shadow-sm p-10">
-        <div className="flex items-center gap-3 mb-8">
-          <GraduationCap className="text-orange-500" />
-
-          <h2 className="text-3xl font-bold">
+      <Card className="p-7 sm:p-8">
+        <div className="mb-6 flex items-center gap-2.5">
+          <GraduationCap className="text-[var(--color-accent)]" size={20} />
+          <h2 className="text-2xl font-semibold tracking-[-0.025em] text-[var(--color-ink)]">
             Requirements
           </h2>
         </div>
-
-        <div className="space-y-5">
+        <div className="space-y-4">
           {requirements.map((item, index) => (
-            <div
-              key={index}
-              className="flex gap-4"
-            >
-              <CheckCircle2
-                className="text-blue-700 mt-1"
-                size={22}
-              />
-
-              <p className="text-gray-700 leading-8">
+            <div key={index} className="flex gap-3">
+              <CheckCircle2 className="mt-0.5 text-[var(--color-brand)]" size={18} />
+              <p className="text-[15px] leading-7 text-[var(--color-ink-secondary)]">
                 {item}
               </p>
             </div>
           ))}
         </div>
-      </section>
+      </Card>
 
-      {/* Skills */}
-
-      <section className="bg-white rounded-3xl shadow-sm p-10">
-        <div className="flex items-center gap-3 mb-8">
-          <Code2 className="text-purple-600" />
-
-          <h2 className="text-3xl font-bold">
-            Skills You'll Use
+      <Card className="p-7 sm:p-8">
+        <div className="mb-6 flex items-center gap-2.5">
+          <Code2 className="text-[#5e5ce6]" size={20} />
+          <h2 className="text-2xl font-semibold tracking-[-0.025em] text-[var(--color-ink)]">
+            Skills you’ll use
           </h2>
         </div>
-
-        <div className="flex flex-wrap gap-4">
+        <div className="flex flex-wrap gap-2.5">
           {skills.map((skill, index) => (
-            <span
-              key={index}
-              className="bg-blue-50 text-blue-700 px-5 py-3 rounded-full font-medium hover:bg-blue-700 hover:text-white transition"
-            >
+            <Badge key={index} tone="brand" className="px-3.5 py-2 text-sm">
               {skill}
-            </span>
+            </Badge>
           ))}
         </div>
-      </section>
+      </Card>
     </div>
   );
 }

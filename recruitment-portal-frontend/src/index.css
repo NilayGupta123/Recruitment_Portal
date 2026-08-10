@@ -1,19 +1,408 @@
 @import "tailwindcss";
 
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
+@theme {
+  --font-sans: "Inter", "SF Pro Text", "SF Pro Display", system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-display: "Inter", "SF Pro Display", system-ui, -apple-system,
+    BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+/* Light (default) */
+:root,
+[data-theme="light"] {
+  --color-canvas: #f2f2f7;
+  --color-surface: #ffffff;
+  --color-surface-elevated: rgba(255, 255, 255, 0.78);
+  --color-surface-muted: #f7f7fa;
+  --color-fill: rgba(0, 0, 0, 0.045);
+  --color-fill-strong: rgba(0, 0, 0, 0.07);
+  --color-ink: #1d1d1f;
+  --color-ink-secondary: #6e6e73;
+  --color-ink-tertiary: #8e8e93;
+  --color-line: rgba(0, 0, 0, 0.08);
+  --color-line-strong: rgba(0, 0, 0, 0.14);
+
+  --color-brand: #0071e3;
+  --color-brand-hover: #0077ed;
+  --color-brand-pressed: #0066cc;
+  --color-brand-soft: rgba(0, 113, 227, 0.12);
+  --color-accent: #ff9f0a;
+  --color-accent-hover: #ffb340;
+  --color-success: #34c759;
+  --color-success-soft: rgba(52, 199, 89, 0.14);
+  --color-warning: #ffd60a;
+  --color-warning-soft: rgba(255, 214, 10, 0.18);
+  --color-danger: #ff3b30;
+  --color-danger-soft: rgba(255, 59, 48, 0.14);
+
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.04), 0 8px 24px rgba(0, 0, 0, 0.06);
+  --shadow-lift: 0 2px 8px rgba(0, 0, 0, 0.06), 0 16px 40px rgba(0, 0, 0, 0.1);
+  --shadow-drawer: -8px 0 40px rgba(0, 0, 0, 0.12);
+
+  --radius-control: 12px;
+  --radius-card: 18px;
+  --radius-sheet: 22px;
+
+  --glass-border: rgba(255, 255, 255, 0.55);
+  --scrim: rgba(0, 0, 0, 0.36);
+
+  /* Badges / status pills */
+  --badge-default-bg: rgba(60, 60, 67, 0.08);
+  --badge-default-fg: #3a3a3c;
+  --badge-default-ring: rgba(60, 60, 67, 0.12);
+  --badge-brand-bg: rgba(0, 113, 227, 0.12);
+  --badge-brand-fg: #0058b0;
+  --badge-brand-ring: rgba(0, 113, 227, 0.18);
+  --badge-success-bg: rgba(52, 199, 89, 0.14);
+  --badge-success-fg: #0f7a38;
+  --badge-success-ring: rgba(52, 199, 89, 0.22);
+  --badge-warning-bg: rgba(255, 204, 0, 0.18);
+  --badge-warning-fg: #8a6500;
+  --badge-warning-ring: rgba(255, 204, 0, 0.28);
+  --badge-danger-bg: rgba(255, 59, 48, 0.12);
+  --badge-danger-fg: #c01912;
+  --badge-danger-ring: rgba(255, 59, 48, 0.2);
+  --badge-accent-bg: rgba(255, 149, 0, 0.16);
+  --badge-accent-fg: #9a4d00;
+  --badge-accent-ring: rgba(255, 149, 0, 0.24);
+  --badge-neutral-bg: rgba(60, 60, 67, 0.08);
+  --badge-neutral-fg: #48484a;
+  --badge-neutral-ring: rgba(60, 60, 67, 0.12);
+}
+
+/* Dark */
+[data-theme="dark"] {
+  --color-canvas: #000000;
+  --color-surface: #1c1c1e;
+  --color-surface-elevated: rgba(28, 28, 30, 0.82);
+  --color-surface-muted: #2c2c2e;
+  --color-fill: rgba(255, 255, 255, 0.08);
+  --color-fill-strong: rgba(255, 255, 255, 0.12);
+  --color-ink: #f5f5f7;
+  --color-ink-secondary: #a1a1a6;
+  --color-ink-tertiary: #8e8e93;
+  --color-line: rgba(255, 255, 255, 0.1);
+  --color-line-strong: rgba(255, 255, 255, 0.16);
+
+  --color-brand: #0a84ff;
+  --color-brand-hover: #409cff;
+  --color-brand-pressed: #0077ed;
+  --color-brand-soft: rgba(10, 132, 255, 0.18);
+  --color-accent: #ff9f0a;
+  --color-accent-hover: #ffb340;
+  --color-success: #30d158;
+  --color-success-soft: rgba(48, 209, 88, 0.16);
+  --color-warning: #ffd60a;
+  --color-warning-soft: rgba(255, 214, 10, 0.16);
+  --color-danger: #ff453a;
+  --color-danger-soft: rgba(255, 69, 58, 0.16);
+
+  --shadow-soft: 0 1px 2px rgba(0, 0, 0, 0.35), 0 8px 24px rgba(0, 0, 0, 0.35);
+  --shadow-lift: 0 4px 16px rgba(0, 0, 0, 0.45), 0 20px 48px rgba(0, 0, 0, 0.4);
+  --shadow-drawer: -12px 0 48px rgba(0, 0, 0, 0.55);
+
+  --glass-border: rgba(255, 255, 255, 0.1);
+  --scrim: rgba(0, 0, 0, 0.62);
+
+  /* Badges / status pills — brighter text + softer fills for dark UI */
+  --badge-default-bg: rgba(255, 255, 255, 0.1);
+  --badge-default-fg: #e5e5ea;
+  --badge-default-ring: rgba(255, 255, 255, 0.12);
+  --badge-brand-bg: rgba(10, 132, 255, 0.2);
+  --badge-brand-fg: #64b5ff;
+  --badge-brand-ring: rgba(10, 132, 255, 0.28);
+  --badge-success-bg: rgba(48, 209, 88, 0.18);
+  --badge-success-fg: #63e08a;
+  --badge-success-ring: rgba(48, 209, 88, 0.26);
+  --badge-warning-bg: rgba(255, 214, 10, 0.16);
+  --badge-warning-fg: #ffd60a;
+  --badge-warning-ring: rgba(255, 214, 10, 0.24);
+  --badge-danger-bg: rgba(255, 69, 58, 0.18);
+  --badge-danger-fg: #ff7b73;
+  --badge-danger-ring: rgba(255, 69, 58, 0.26);
+  --badge-accent-bg: rgba(255, 159, 10, 0.18);
+  --badge-accent-fg: #ffb340;
+  --badge-accent-ring: rgba(255, 159, 10, 0.26);
+  --badge-neutral-bg: rgba(255, 255, 255, 0.1);
+  --badge-neutral-fg: #d1d1d6;
+  --badge-neutral-ring: rgba(255, 255, 255, 0.12);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
 html,
 body,
-#root{
-  width:100%;
-  min-height:100vh;
+#root {
+  width: 100%;
+  min-height: 100vh;
 }
 
-body{
-  font-family: Inter, sans-serif;
-  background:#f4f7fb;
+html {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  font-feature-settings: "ss01" on, "cv11" on, "kern" on;
+  transition: color-scheme 0.2s ease;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  font-size: 15.5px;
+  font-weight: 450;
+  line-height: 1.55;
+  letter-spacing: -0.011em;
+  color: var(--color-ink);
+  background: var(--color-canvas);
+  transition:
+    background-color 220ms ease,
+    color 220ms ease;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5 {
+  font-family: var(--font-display);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+  color: var(--color-ink);
+  text-wrap: balance;
+}
+
+h1 {
+  letter-spacing: -0.035em;
+  font-weight: 700;
+}
+
+h2 {
+  letter-spacing: -0.03em;
+}
+
+p {
+  color: var(--color-ink-secondary);
+  text-wrap: pretty;
+}
+
+small,
+.text-caption {
+  letter-spacing: 0.01em;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  font: inherit;
+  letter-spacing: inherit;
+}
+
+button,
+[role="button"],
+.pressable {
+  transition:
+    transform 100ms ease-out,
+    background-color 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 220ms ease,
+    opacity 180ms ease;
+}
+
+button:active:not(:disabled),
+[role="button"]:active,
+.pressable:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+button:disabled,
+.pressable:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+::selection {
+  background: color-mix(in srgb, var(--color-brand) 28%, transparent);
+  color: var(--color-ink);
+}
+
+/* Glass materials */
+.glass {
+  background: var(--color-surface-elevated);
+  backdrop-filter: blur(20px) saturate(180%);
+  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-heavy {
+  background: color-mix(in srgb, var(--color-surface) 88%, transparent);
+  backdrop-filter: blur(28px) saturate(180%);
+  -webkit-backdrop-filter: blur(28px) saturate(180%);
+  border: 1px solid var(--glass-border);
+}
+
+.surface-card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-soft);
+}
+
+.surface-inset {
+  background: var(--color-surface-muted);
+  border: 1px solid var(--color-line);
+  border-radius: var(--radius-control);
+}
+
+.focus-ring:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--color-brand) 28%, transparent);
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-ink) 18%, transparent);
+  border-radius: 999px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@keyframes sheet-in {
+  from {
+    opacity: 0;
+    transform: translateX(18px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0) scale(1);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes rise-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-sheet-in {
+  animation: sheet-in 0.38s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-fade-in {
+  animation: fade-in 0.28s ease both;
+}
+
+.animate-rise-in {
+  animation: rise-in 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.Toastify__toast {
+  border-radius: 14px !important;
+  font-family: var(--font-sans) !important;
+  box-shadow: var(--shadow-lift) !important;
+  background: var(--color-surface) !important;
+  color: var(--color-ink) !important;
+  border: 1px solid var(--color-line) !important;
+}
+
+[data-theme="dark"] .Toastify__toast-body {
+  color: var(--color-ink);
+}
+
+/* Dark-mode helpers for components still using light hardcodes */
+[data-theme="dark"] .bg-white,
+[data-theme="dark"] .bg-white\/80,
+[data-theme="dark"] .bg-white\/95 {
+  background-color: var(--color-surface) !important;
+}
+
+[data-theme="dark"] .bg-black\/\[0\.04\],
+[data-theme="dark"] .bg-black\/\[0\.05\],
+[data-theme="dark"] .bg-black\/\[0\.03\],
+[data-theme="dark"] .hover\:bg-black\/\[0\.04\]:hover,
+[data-theme="dark"] .hover\:bg-black\/\[0\.07\]:hover,
+[data-theme="dark"] .hover\:bg-black\/\[0\.08\]:hover {
+  background-color: var(--color-fill) !important;
+}
+
+[data-theme="dark"] .ring-white {
+  --tw-ring-color: var(--color-surface);
+}
+
+[data-theme="dark"] .prose {
+  --tw-prose-body: var(--color-ink-secondary);
+  --tw-prose-headings: var(--color-ink);
+  color: var(--color-ink-secondary);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  button:active:not(:disabled),
+  [role="button"]:active,
+  .pressable:active:not(:disabled) {
+    transform: none;
+  }
+
+  .animate-sheet-in,
+  .animate-fade-in,
+  .animate-rise-in {
+    animation: fade-in 0.15s ease both;
+  }
+
+  body {
+    transition: none;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  .glass,
+  .glass-heavy {
+    background: var(--color-surface);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+
+@media (prefers-contrast: more) {
+  .surface-card,
+  .glass,
+  .glass-heavy {
+    border-color: var(--color-line-strong);
+  }
 }

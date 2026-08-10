@@ -5,22 +5,16 @@ import { getMyApplications } from "../../api/applicantApi";
 
 import MyApplicationsTable from "../../components/applicants/MyApplicationsTable";
 import ApplicationDetailsDrawer from "../../components/applicants/ApplicationDetailsDrawer";
+import PageHeader from "../../components/ui/PageHeader";
+import { Input, Select } from "../../components/ui/Input";
+import LoadingState from "../../components/ui/LoadingState";
 
 export default function MyApplications() {
-  const [applications, setApplications] =
-    useState([]);
-
-  const [selectedApplication, setSelectedApplication] =
-    useState(null);
-
-  const [loading, setLoading] =
-    useState(true);
-
-  const [search, setSearch] =
-    useState("");
-
-  const [status, setStatus] =
-    useState("");
+  const [applications, setApplications] = useState([]);
+  const [selectedApplication, setSelectedApplication] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [status, setStatus] = useState("");
 
   useEffect(() => {
     loadApplications();
@@ -29,145 +23,72 @@ export default function MyApplications() {
   const loadApplications = async () => {
     try {
       setLoading(true);
-
-      const res =
-        await getMyApplications();
-
+      const res = await getMyApplications();
       setApplications(res.data);
     } catch (err) {
       console.error(err);
-
-      toast.error(
-        "Unable to load applications."
-      );
+      toast.error("Unable to load applications.");
     } finally {
       setLoading(false);
     }
   };
 
-  const filteredApplications =
-    useMemo(() => {
-      return applications.filter((app) => {
-
-        const matchesSearch =
-          app.job_title
-            .toLowerCase()
-            .includes(
-              search.toLowerCase()
-            );
-
-        const matchesStatus =
-          !status ||
-          app.status === status;
-
-        return (
-          matchesSearch &&
-          matchesStatus
-        );
-      });
-    }, [
-      applications,
-      search,
-      status,
-    ]);
-
-  if (loading) {
-    return (
-      <div className="flex justify-center items-center h-[70vh]">
-        Loading...
-      </div>
-    );
-  }
+  const filteredApplications = useMemo(() => {
+    return applications.filter((app) => {
+      const matchesSearch = app.job_title
+        .toLowerCase()
+        .includes(search.toLowerCase());
+      const matchesStatus = !status || app.status === status;
+      return matchesSearch && matchesStatus;
+    });
+  }, [applications, search, status]);
 
   return (
     <>
       <div className="space-y-6">
-
-        <div>
-
-          <h1 className="text-3xl font-bold">
-            My Applications
-          </h1>
-
-          <p className="text-gray-500">
-            Track your job applications.
-          </p>
-
-        </div>
-
-        <div className="grid grid-cols-2 gap-4">
-
-          <input
-            type="text"
-            placeholder="Search..."
-            value={search}
-            onChange={(e) =>
-              setSearch(
-                e.target.value
-              )
-            }
-            className="border rounded-xl px-4 py-3"
-          />
-
-          <select
-            value={status}
-            onChange={(e) =>
-              setStatus(
-                e.target.value
-              )
-            }
-            className="border rounded-xl px-4 py-3"
-          >
-            <option value="">
-              All Status
-            </option>
-
-            <option>
-              Applied
-            </option>
-
-            <option>
-              Shortlisted
-            </option>
-
-            <option>
-              Interview Scheduled
-            </option>
-
-            <option>
-              Selected
-            </option>
-
-            <option>
-              Rejected
-            </option>
-
-          </select>
-
-        </div>
-
-        <MyApplicationsTable
-          applications={
-            filteredApplications
-          }
-          onView={
-            setSelectedApplication
-          }
+        <PageHeader
+          title="My applications"
+          description="Track your job applications."
         />
 
+        <div className="flex flex-col gap-3 rounded-[18px] border border-[var(--color-line)] bg-white/80 p-3 sm:flex-row sm:items-center">
+          <Input
+            type="text"
+            placeholder="Search…"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="flex-1"
+            disabled={loading}
+          />
+          <Select
+            value={status}
+            onChange={(e) => setStatus(e.target.value)}
+            className="sm:max-w-[220px]"
+            disabled={loading}
+          >
+            <option value="">All status</option>
+            <option>Applied</option>
+            <option>Shortlisted</option>
+            <option>Interview Scheduled</option>
+            <option>Selected</option>
+            <option>Rejected</option>
+          </Select>
+        </div>
+
+        {loading ? (
+          <LoadingState label="Loading applications…" rows={5} />
+        ) : (
+          <MyApplicationsTable
+            applications={filteredApplications}
+            onView={setSelectedApplication}
+          />
+        )}
       </div>
 
       <ApplicationDetailsDrawer
-        application={
-          selectedApplication
-        }
-        onClose={() =>
-          setSelectedApplication(
-            null
-          )
-        }
+        application={selectedApplication}
+        onClose={() => setSelectedApplication(null)}
       />
-
     </>
   );
 }
