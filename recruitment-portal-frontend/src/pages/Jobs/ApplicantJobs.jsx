@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { toast } from "react-toastify";
 
-import { getJobs } from "../../api/jobsApi";
+import { getPublicPostings } from "../../api/publicApi";
 import { getMyApplications } from "../../api/applicantApi";
 
 import ApplicantJobTable from "../../components/jobs/ApplicantJobTable";
@@ -27,7 +27,7 @@ export default function ApplicantJobs() {
     try {
       setLoading(true);
       const [jobsRes, appsRes] = await Promise.all([
-        getJobs(),
+        getPublicPostings(),
         getMyApplications(),
       ]);
       setJobs(jobsRes.data);
@@ -43,7 +43,7 @@ export default function ApplicantJobs() {
   const applicationMap = useMemo(() => {
     const map = {};
     applications.forEach((app) => {
-      map[app.job_id] = app;
+      map[app.mapping_id] = app;
     });
     return map;
   }, [applications]);
@@ -123,7 +123,7 @@ export default function ApplicantJobs() {
 
       <ApplicantJobDrawer
         job={selectedJob}
-        application={selectedJob ? applicationMap[selectedJob.id] : null}
+        application={selectedJob ? applicationMap[selectedJob.mapping_id] : null}
         onClose={() => setSelectedJob(null)}
         onApplied={loadData}
       />

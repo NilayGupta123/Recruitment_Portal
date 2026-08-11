@@ -47,7 +47,14 @@ export default function JobSidebar({ job }) {
     },
     { icon: MapPin, label: "Location", value: job.location || "India" },
     { icon: Building2, label: "Employment", value: job.employment_type },
-    { icon: IndianRupee, label: "Salary", value: "₹8–15 LPA" },
+    {
+      icon: IndianRupee,
+      label: "Salary",
+      value:
+        job.salary_min != null && job.salary_max != null
+          ? `₹${job.salary_min}–${job.salary_max}`
+          : "Not disclosed",
+    },
     { icon: Calendar, label: "Posted", value: "Recently" },
   ];
 
@@ -89,7 +96,7 @@ export default function JobSidebar({ job }) {
             <Button
               variant="accent"
               className="w-full"
-              onClick={() => navigate(`/careers/job/${job.id}/apply`)}
+              onClick={() => navigate(`/careers/job/${job.mapping_id}/apply`)}
             >
               Apply now
               <ArrowRight size={16} />

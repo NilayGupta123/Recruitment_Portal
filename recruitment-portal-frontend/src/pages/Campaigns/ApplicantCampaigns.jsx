@@ -43,7 +43,7 @@ export default function ApplicantCampaigns() {
 
   const applicationMap = {};
   applications.forEach((app) => {
-    applicationMap[app.job_id] = app;
+    applicationMap[app.mapping_id] = app;
   });
 
   const openCampaign = async (campaign) => {

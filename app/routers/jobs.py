@@ -1,29 +1,65 @@
 from __future__ import annotations
 
-from typing import List
-
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import func, or_, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.db.session import get_db
+from app.models.campaign import Campaign, CampaignJobMapping, CampaignStatus
 from app.models.job import Job
 from app.models.user import User
 from app.routers.auth import get_current_user
-from app.schemas.applicant import ReadApplicantList
 from app.schemas.job import CreateJob, ReadJob, UpdateJob, PartialUpdateJob
-from app.models.applicant import Applicant
+from app.schemas.pagination import Paginated
 
 
 router = APIRouter(prefix="/jobs", tags=["jobs"])
 
 
-@router.get("/list", response_model=List[ReadJob])
-async def list_jobs(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> List[ReadJob]:
+@router.get("/list", response_model=Paginated[ReadJob])
+async def list_jobs(
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+    page: int = Query(1, ge=1),
+    page_size: int = Query(10, ge=1, le=200),
+    q: str | None = Query(None, description="Search title, department, employment type"),
+    department: str | None = Query(None),
+    employment_type: str | None = Query(None),
+) -> Paginated[ReadJob]:
+    filters = []
+    if q:
+        term = f"%{q.strip()}%"
+        filters.append(
+            or_(
+                Job.title.ilike(term),
+                Job.department.ilike(term),
+                Job.employment_type.ilike(term),
+            )
+        )
+    if department:
+        filters.append(Job.department == department)
+    if employment_type:
+        filters.append(Job.employment_type == employment_type)
 
-    result = await db.execute(select(Job).order_by(Job.id))
-    return list(result.scalars().all())
+    count_stmt = select(func.count()).select_from(Job)
+    list_stmt = select(Job)
+    if filters:
+        count_stmt = count_stmt.where(*filters)
+        list_stmt = list_stmt.where(*filters)
+
+    total = int((await db.execute(count_stmt)).scalar_one())
+    result = await db.execute(
+        list_stmt.order_by(Job.id.desc())
+        .offset((page - 1) * page_size)
+        .limit(page_size)
+    )
+    return Paginated[ReadJob].of(
+        result.scalars().all(),
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
 
 @router.post("/create", response_model=ReadJob, status_code=status.HTTP_201_CREATED)
 async def create_job(payload: CreateJob, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> ReadJob:
@@ -77,6 +113,42 @@ async def update_job(job_id: int, payload: UpdateJob, db: AsyncSession = Depends
     await db.refresh(job)
     return job
 
+
+@router.delete("/delete/{job_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_job(
+    job_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> None:
+    result = await db.execute(select(Job).where(Job.id == job_id))
+    job = result.scalar_one_or_none()
+    if not job:
+        raise HTTPException(status_code=404, detail="Job not found")
+    if current_user.user_type not in ["ADMIN", "HR"]:
+        raise HTTPException(status_code=403, detail="Only Admin or HR can delete jobs")
+
+    published = await db.execute(
+        select(CampaignJobMapping.id)
+        .join(Campaign, CampaignJobMapping.campaign_id == Campaign.id)
+        .where(
+            CampaignJobMapping.job_id == job_id,
+            Campaign.status == CampaignStatus.PUBLISHED,
+        )
+        .limit(1)
+    )
+    if published.scalar_one_or_none() is not None:
+        raise HTTPException(
+            status_code=409,
+            detail="Cannot delete a job that is part of a published campaign.",
+        )
+
+    await db.delete(job)
+    try:
+        await db.commit()
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(status_code=400, detail="Job delete failed")
+
 @router.patch("/patch/{job_id}", response_model=ReadJob)
 async def partial_update_job(job_id: int, payload: PartialUpdateJob, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)) -> ReadJob:
     result = await db.execute(select(Job).where(Job.id == job_id))
@@ -104,36 +176,4 @@ async def partial_update_job(job_id: int, payload: PartialUpdateJob, db: AsyncSe
         await db.rollback()
         raise HTTPException(status_code=400, detail="Job update failed")
     await db.refresh(job)
-    return job
-
-# Get Applicants for a Job
-@router.get("/{job_id}/applicants", response_model=list[ReadApplicantList])
-async def get_job_applicants(job_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
-    result = await db.execute(
-        select(
-            Applicant.id.label("application_id"),
-            Applicant.applicant_id,
-            User.full_name,
-            User.email,
-            User.phone_number,
-            Applicant.status,
-            Applicant.applied_at,
-        )
-        .join(User, Applicant.applicant_id == User.id).where(Applicant.job_id == job_id).order_by(Applicant.applied_at.desc()))
-
-    return result.mappings().all()
-
-@router.get("/public")
-async def get_public_jobs(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Job))
-    jobs = result.scalars().all()
-    return jobs
-
-@router.get("/public/{job_id}")
-async def get_public_job(job_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Job).where(Job.id == job_id))
-    job = result.scalar_one_or_none()
-    
-    if not job:
-        raise HTTPException(status_code=404, detail="Job not found")
     return job

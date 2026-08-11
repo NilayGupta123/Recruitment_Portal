@@ -1,3 +1,4 @@
+from decimal import Decimal
 from typing import Optional
 from pydantic import BaseModel, EmailStr
 
@@ -38,11 +39,30 @@ class UploadResumeResponse(BaseModel):
     message: str
 
 # -------------------------------------------------
+# Postings (a job under one specific published campaign)
+# -------------------------------------------------
+
+class PublicPosting(BaseModel):
+    mapping_id: int
+    job_id: int
+    title: str
+    description: Optional[str] = None
+    department: Optional[str] = None
+    employment_type: Optional[str] = None
+    experience_required: Optional[int] = None
+    salary_min: Optional[Decimal] = None
+    salary_max: Optional[Decimal] = None
+    vacancies: Optional[int] = None
+    campaign_id: int
+    campaign_title: str
+    campaign_location: Optional[str] = None
+
+# -------------------------------------------------
 # Apply Job
 # -------------------------------------------------
 
 class PublicApplicationCreate(BaseModel):
-    job_id: int
+    mapping_id: int
     full_name: str
     email: EmailStr
     phone_number: str

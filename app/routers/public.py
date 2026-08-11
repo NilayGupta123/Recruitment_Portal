@@ -10,26 +10,48 @@ from app.models.job import Job
 from app.models.applicant import Applicant
 from app.models.applicant import ApplicantDetail
 from app.models.file import File as FileRecord
-from app.schemas.public import CheckApplicantRequest, CheckApplicantResponse, ApplicantDetailsResponse, PublicApplicationCreate, PublicApplicationResponse, UploadResumeResponse
+from app.schemas.public import CheckApplicantRequest, CheckApplicantResponse, ApplicantDetailsResponse, PublicApplicationCreate, PublicApplicationResponse, PublicPosting, UploadResumeResponse
 from app.schemas.campaign import ReadCampaign
-from app.models.campaign import Campaign
+from app.models.campaign import Campaign, CampaignJobMapping
 from app.services.storage import S3StorageManager
 
 router = APIRouter(prefix="/public", tags=["Public"])
 
-@router.get("/jobs")
-async def list_public_jobs(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Job))
-    return result.scalars().all()
+def _posting_query():
+    return (
+        select(
+            CampaignJobMapping.id.label("mapping_id"),
+            Job.id.label("job_id"),
+            Job.title,
+            Job.description,
+            Job.department,
+            Job.employment_type,
+            Job.experience_required,
+            CampaignJobMapping.salary_min,
+            CampaignJobMapping.salary_max,
+            CampaignJobMapping.vacancies,
+            Campaign.id.label("campaign_id"),
+            Campaign.title.label("campaign_title"),
+            Campaign.location.label("campaign_location"),
+        )
+        .join(Job, CampaignJobMapping.job_id == Job.id)
+        .join(Campaign, CampaignJobMapping.campaign_id == Campaign.id)
+        .where(Campaign.status == "PUBLISHED")
+    )
 
-@router.get("/jobs/{job_id}")
-async def get_public_job(job_id: int, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(select(Job).where(Job.id == job_id))
-    job = result.scalar_one_or_none()
+@router.get("/postings", response_model=List[PublicPosting])
+async def list_public_postings(db: AsyncSession = Depends(get_db)):
+    result = await db.execute(_posting_query().order_by(CampaignJobMapping.id))
+    return result.mappings().all()
 
-    if job is None:
-        raise HTTPException(status_code=404, detail="Job not found")
-    return job
+@router.get("/postings/{mapping_id}", response_model=PublicPosting)
+async def get_public_posting(mapping_id: int, db: AsyncSession = Depends(get_db)):
+    result = await db.execute(_posting_query().where(CampaignJobMapping.id == mapping_id))
+    posting = result.mappings().one_or_none()
+
+    if posting is None:
+        raise HTTPException(status_code=404, detail="Posting not found")
+    return posting
 
 @router.post("/check-applicant", response_model=CheckApplicantResponse)
 async def check_applicant(payload: CheckApplicantRequest, db: AsyncSession = Depends(get_db)):
@@ -63,6 +85,16 @@ async def check_applicant(payload: CheckApplicantRequest, db: AsyncSession = Dep
 
 @router.post("/apply", response_model=PublicApplicationResponse)
 async def apply_job(payload: PublicApplicationCreate, db: AsyncSession = Depends(get_db)):
+    # ----------------------------------------
+    # Check the posting (campaign+job pairing) exists
+    # ----------------------------------------
+
+    mapping_result = await db.execute(
+        select(CampaignJobMapping).where(CampaignJobMapping.id == payload.mapping_id)
+    )
+    if mapping_result.scalar_one_or_none() is None:
+        raise HTTPException(status_code=404, detail="Posting not found")
+
     # ----------------------------------------
     # Check if user exists
     # ----------------------------------------
@@ -127,7 +159,7 @@ async def apply_job(payload: PublicApplicationCreate, db: AsyncSession = Depends
 
     result = await db.execute(
         select(Applicant).where(
-            Applicant.job_id == payload.job_id,
+            Applicant.mapping_id == payload.mapping_id,
             Applicant.applicant_id == user.id,
         )
     )
@@ -140,7 +172,7 @@ async def apply_job(payload: PublicApplicationCreate, db: AsyncSession = Depends
     # ----------------------------------------
 
     application = Applicant(
-        job_id=payload.job_id,
+        mapping_id=payload.mapping_id,
         applicant_id=user.id,
         status="Applied",
     )

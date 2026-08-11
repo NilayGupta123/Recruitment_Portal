@@ -14,7 +14,7 @@ export default function ApplyJobButton({ job, application, onApplied }) {
   const handleApply = async () => {
     try {
       setLoading(true);
-      await applyToJob(job.id, selectedFile);
+      await applyToJob(job.mapping_id, selectedFile);
       toast.success("Application submitted successfully!");
       if (onApplied) {
         await onApplied();

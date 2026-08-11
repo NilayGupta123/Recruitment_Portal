@@ -69,7 +69,7 @@ class JobSkillMapping(Base):
     )
 
     job_id: Mapped[int] = mapped_column(
-        ForeignKey("jobs.id"),
+        ForeignKey("jobs.id", ondelete="CASCADE"),
         nullable=False,
         index=True
     )

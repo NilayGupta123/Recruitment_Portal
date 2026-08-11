@@ -48,7 +48,10 @@ export default function EditCampaignDrawer({
       setLoadingJobs(true);
       const response = await getCampaignJobs(campaign.id);
       const mappedJobs = response.data.map((job) => ({
-        job_id: job.id,
+        job_id: job.job_id,
+        salary_min: job.salary_min,
+        salary_max: job.salary_max,
+        vacancies: job.vacancies,
       }));
       setSelectedJobs(mappedJobs);
     } catch (error) {

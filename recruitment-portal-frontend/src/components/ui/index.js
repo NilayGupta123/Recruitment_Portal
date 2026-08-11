@@ -5,6 +5,10 @@ export { default as Badge } from "./Badge";
 export { default as Card, CardHeader, CardBody } from "./Card";
 export { default as Drawer } from "./Drawer";
 export { default as Modal } from "./Modal";
+export { default as ConfirmDialog } from "./ConfirmDialog";
+export { default as Pagination } from "./Pagination";
+
+
 export { default as PageHeader } from "./PageHeader";
 export { default as StatCard } from "./StatCard";
 export { default as Avatar } from "./Avatar";

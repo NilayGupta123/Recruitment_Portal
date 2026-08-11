@@ -29,9 +29,11 @@ export default function Dashboard() {
     try {
       const [jobsResponse, campaignsResponse, applicantsResponse] =
         await Promise.all([getJobs(), getCampaigns(), getApplicants()]);
-      setJobs(jobsResponse.data);
-      setCampaigns(campaignsResponse.data);
-      setApplicants(applicantsResponse.data);
+      setJobs(jobsResponse.data?.items || jobsResponse.data || []);
+      setCampaigns(
+        campaignsResponse.data?.items || campaignsResponse.data || []
+      );
+      setApplicants(applicantsResponse.data || []);
     } catch (error) {
       console.error(error);
     } finally {

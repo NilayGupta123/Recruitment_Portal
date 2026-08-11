@@ -17,7 +17,10 @@ export default function JobCard({ job }) {
           </div>
         </div>
 
-        <h2 className="mt-5 line-clamp-2 text-[22px] font-semibold tracking-[-0.025em] text-[var(--color-ink)]">
+        <p className="mt-5 text-[13px] font-semibold text-[var(--color-accent)]">
+          {job.campaign_title}
+        </p>
+        <h2 className="mt-1 line-clamp-2 text-[22px] font-semibold tracking-[-0.025em] text-[var(--color-ink)]">
           {job.title}
         </h2>
 
@@ -32,7 +35,7 @@ export default function JobCard({ job }) {
         <div className="space-y-3 text-[14px] text-[var(--color-ink-secondary)]">
           <div className="flex items-center gap-2.5">
             <MapPin size={16} className="text-[var(--color-accent)]" />
-            <span>{job.location || "India"}</span>
+            <span>{job.campaign_location || "India"}</span>
           </div>
           <div className="flex items-center gap-2.5">
             <Briefcase size={16} className="text-[var(--color-accent)]" />
@@ -57,7 +60,7 @@ export default function JobCard({ job }) {
           </div>
           <Button
             size="sm"
-            onClick={() => navigate(`/careers/job/${job.id}`)}
+            onClick={() => navigate(`/careers/job/${job.mapping_id}`)}
             className="gap-1.5"
           >
             View details

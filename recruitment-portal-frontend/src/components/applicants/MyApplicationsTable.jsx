@@ -38,7 +38,7 @@ export default function MyApplicationsTable({ applications, onView }) {
                   {application.job_title}
                 </p>
                 <p className="mt-1 text-sm text-[var(--color-ink-secondary)]">
-                  Job ID: {application.job_id}
+                  {application.campaign_title}
                 </p>
               </Td>
               <Td>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { Plus } from "lucide-react";
 
@@ -13,11 +13,13 @@ import {
   getCampaigns,
   createCampaign,
   updateCampaign,
+  deleteCampaign,
 } from "../../api/campaignsApi";
 import PageHeader from "../../components/ui/PageHeader";
 import Button from "../../components/ui/Button";
 import Badge from "../../components/ui/Badge";
-import { Input } from "../../components/ui/Input";
+import { Input, Select } from "../../components/ui/Input";
+import Pagination from "../../components/ui/Pagination";
 import {
   TableShell,
   Table,
@@ -29,10 +31,17 @@ import {
 } from "../../components/ui/Table";
 import { TableLoadingRow } from "../../components/ui/LoadingState";
 
+const PAGE_SIZE = 10;
+
 export default function Campaigns() {
   const [campaigns, setCampaigns] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [pages, setPages] = useState(1);
   const [selectedCampaign, setSelectedCampaign] = useState(null);
   const [showCreateDrawer, setShowCreateDrawer] = useState(false);
   const [showEditDrawer, setShowEditDrawer] = useState(false);
@@ -44,21 +53,38 @@ export default function Campaigns() {
   const [updatingJob, setUpdatingJob] = useState(false);
 
   useEffect(() => {
-    loadCampaigns();
-  }, []);
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  const loadCampaigns = async () => {
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, statusFilter]);
+
+  const loadCampaigns = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await getCampaigns();
-      setCampaigns(response.data);
+      const response = await getCampaigns({
+        page,
+        page_size: PAGE_SIZE,
+        q: debouncedSearch || undefined,
+        status: statusFilter || undefined,
+      });
+      const data = response.data || {};
+      setCampaigns(data.items || []);
+      setTotal(data.total || 0);
+      setPages(data.pages || 1);
     } catch (error) {
       console.error(error);
       toast.error("Failed to load campaigns");
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, debouncedSearch, statusFilter]);
+
+  useEffect(() => {
+    loadCampaigns();
+  }, [loadCampaigns]);
 
   const handleUpdateJob = async (jobId, data) => {
     try {
@@ -84,6 +110,7 @@ export default function Campaigns() {
       const response = await createCampaign(data);
       await updateCampaignJobs(response.data.id, selectedJobs);
       toast.success("Campaign created successfully");
+      setPage(1);
       await loadCampaigns();
       setShowCreateDrawer(false);
     } catch (error) {
@@ -112,9 +139,16 @@ export default function Campaigns() {
     }
   };
 
-  const filteredCampaigns = campaigns.filter((campaign) =>
-    campaign.title?.toLowerCase().includes(search.toLowerCase())
-  );
+  const handleDeleteCampaign = async (campaign) => {
+    await deleteCampaign(campaign.id);
+    toast.success("Campaign deleted successfully");
+    setSelectedCampaign(null);
+    if (campaigns.length === 1 && page > 1) {
+      setPage((p) => p - 1);
+    } else {
+      await loadCampaigns();
+    }
+  };
 
   return (
     <>
@@ -130,7 +164,7 @@ export default function Campaigns() {
           }
         />
 
-        <div className="flex flex-col gap-3 rounded-[18px] border border-[var(--color-line)] bg-white/80 p-3 sm:flex-row sm:items-center">
+        <div className="flex flex-col gap-3 rounded-[18px] border border-[var(--color-line)] bg-[var(--color-surface)]/80 p-3 sm:flex-row sm:items-center">
           <Input
             type="text"
             placeholder="Search campaigns…"
@@ -138,9 +172,30 @@ export default function Campaigns() {
             onChange={(e) => setSearch(e.target.value)}
             className="sm:max-w-xs"
           />
+          <Select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="sm:max-w-[180px]"
+          >
+            <option value="">All statuses</option>
+            <option value="DRAFT">DRAFT</option>
+            <option value="PUBLISHED">PUBLISHED</option>
+            <option value="CLOSED">CLOSED</option>
+          </Select>
         </div>
 
-        <TableShell>
+        <TableShell
+          footer={
+            <Pagination
+              page={page}
+              pages={pages}
+              total={total}
+              pageSize={PAGE_SIZE}
+              onChange={setPage}
+              disabled={loading}
+            />
+          }
+        >
           <Table>
             <THead>
               <tr>
@@ -154,7 +209,7 @@ export default function Campaigns() {
             <TBody>
               {loading ? (
                 <TableLoadingRow colSpan={5} label="Loading campaigns…" />
-              ) : filteredCampaigns.length === 0 ? (
+              ) : campaigns.length === 0 ? (
                 <Tr>
                   <Td
                     colSpan={5}
@@ -164,7 +219,7 @@ export default function Campaigns() {
                   </Td>
                 </Tr>
               ) : (
-                filteredCampaigns.map((campaign) => (
+                campaigns.map((campaign) => (
                   <Tr
                     key={campaign.id}
                     onClick={() => setSelectedCampaign(campaign)}
@@ -197,6 +252,7 @@ export default function Campaigns() {
           setEditingJob(job);
           setShowEditJobDrawer(true);
         }}
+        onDelete={handleDeleteCampaign}
       />
 
       <CreateCampaignDrawer

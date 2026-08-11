@@ -4,7 +4,7 @@ import { toast } from "react-toastify";
 import { getCampaigns } from "../../api/campaignsApi";
 import { getCampaignJobs } from "../../api/campaignJobApi";
 import {
-  getApplicantsByJob,
+  getCampaignJobApplicants,
   getApplicantProfile,
   updateApplicantStatus,
 } from "../../api/applicantApi";
@@ -32,8 +32,8 @@ export default function Applicants() {
 
   const loadCampaigns = async () => {
     try {
-      const response = await getCampaigns();
-      setCampaigns(response.data);
+      const response = await getCampaigns({ page: 1, page_size: 200 });
+      setCampaigns(response.data?.items || response.data || []);
     } catch (error) {
       console.error(error);
       toast.error("Failed to load campaigns");
@@ -64,7 +64,10 @@ export default function Applicants() {
     setProfile(null);
 
     try {
-      const response = await getApplicantsByJob(job.id);
+      const response = await getCampaignJobApplicants(
+        selectedCampaign.id,
+        job.job_id
+      );
       setApplicants(response.data);
     } catch (error) {
       console.error(error);
@@ -98,7 +101,10 @@ export default function Applicants() {
       setProfile(response.data);
 
       if (selectedJob) {
-        const applicantsResponse = await getApplicantsByJob(selectedJob.id);
+        const applicantsResponse = await getCampaignJobApplicants(
+          selectedCampaign.id,
+          selectedJob.job_id
+        );
         setApplicants(applicantsResponse.data);
       }
     } catch (error) {

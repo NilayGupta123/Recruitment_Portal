@@ -1,13 +1,14 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import { Plus } from "lucide-react";
 import JobDrawer from "../../components/drawers/JobDrawer";
 import CreateJobDrawer from "../../components/drawers/CreateJobDrawer";
 import EditJobDrawer from "../../components/drawers/EditJobDrawer";
-import { createJob, updateJob, getJobs } from "../../api/jobsApi";
+import { createJob, updateJob, getJobs, deleteJob } from "../../api/jobsApi";
 import PageHeader from "../../components/ui/PageHeader";
 import Button from "../../components/ui/Button";
 import { Input, Select } from "../../components/ui/Input";
+import Pagination from "../../components/ui/Pagination";
 import {
   TableShell,
   Table,
@@ -19,12 +20,22 @@ import {
 } from "../../components/ui/Table";
 import { TableLoadingRow } from "../../components/ui/LoadingState";
 
+const PAGE_SIZE = 10;
+
 export default function Jobs() {
   const [jobs, setJobs] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
   const [departmentFilter, setDepartmentFilter] = useState("");
   const [typeFilter, setTypeFilter] = useState("");
+  const [page, setPage] = useState(1);
+  const [total, setTotal] = useState(0);
+  const [pages, setPages] = useState(1);
+  const [filterOptions, setFilterOptions] = useState({
+    departments: [],
+    employmentTypes: [],
+  });
   const [selectedJob, setSelectedJob] = useState(null);
   const [showCreateDrawer, setShowCreateDrawer] = useState(false);
   const [showEditDrawer, setShowEditDrawer] = useState(false);
@@ -33,35 +44,65 @@ export default function Jobs() {
   const [updating, setUpdating] = useState(false);
 
   useEffect(() => {
-    loadJobs();
-  }, []);
+    const t = setTimeout(() => setDebouncedSearch(search.trim()), 300);
+    return () => clearTimeout(t);
+  }, [search]);
 
-  const loadJobs = async () => {
+  useEffect(() => {
+    setPage(1);
+  }, [debouncedSearch, departmentFilter, typeFilter]);
+
+  const loadJobs = useCallback(async () => {
     try {
       setLoading(true);
-      const response = await getJobs();
-      setJobs(response.data);
+      const response = await getJobs({
+        page,
+        page_size: PAGE_SIZE,
+        q: debouncedSearch || undefined,
+        department: departmentFilter || undefined,
+        employment_type: typeFilter || undefined,
+      });
+      const data = response.data || {};
+      setJobs(data.items || []);
+      setTotal(data.total || 0);
+      setPages(data.pages || 1);
     } catch (error) {
       console.error(error);
       toast.error("Failed to load jobs");
     } finally {
       setLoading(false);
     }
-  };
+  }, [page, debouncedSearch, departmentFilter, typeFilter]);
 
-  const departments = [
-    ...new Set(jobs.map((job) => job.department).filter(Boolean)),
-  ];
+  useEffect(() => {
+    loadJobs();
+  }, [loadJobs]);
 
-  const employmentTypes = [
-    ...new Set(jobs.map((job) => job.employment_type).filter(Boolean)),
-  ];
+  useEffect(() => {
+    (async () => {
+      try {
+        const response = await getJobs({ page: 1, page_size: 200 });
+        const items = response.data?.items || [];
+        setFilterOptions({
+          departments: [
+            ...new Set(items.map((job) => job.department).filter(Boolean)),
+          ].sort(),
+          employmentTypes: [
+            ...new Set(items.map((job) => job.employment_type).filter(Boolean)),
+          ].sort(),
+        });
+      } catch {
+        /* non-blocking */
+      }
+    })();
+  }, []);
 
   const handleCreateJob = async (data) => {
     try {
       setCreating(true);
       await createJob(data);
       toast.success("Job created successfully");
+      setPage(1);
       await loadJobs();
       setShowCreateDrawer(false);
     } catch (error) {
@@ -89,15 +130,16 @@ export default function Jobs() {
     }
   };
 
-  const filteredJobs = jobs.filter((job) => {
-    const matchesSearch = job.title
-      ?.toLowerCase()
-      .includes(search.toLowerCase());
-    const matchesDepartment =
-      !departmentFilter || job.department === departmentFilter;
-    const matchesType = !typeFilter || job.employment_type === typeFilter;
-    return matchesSearch && matchesDepartment && matchesType;
-  });
+  const handleDeleteJob = async (job) => {
+    await deleteJob(job.id);
+    toast.success("Job deleted successfully");
+    setSelectedJob(null);
+    if (jobs.length === 1 && page > 1) {
+      setPage((p) => p - 1);
+    } else {
+      await loadJobs();
+    }
+  };
 
   return (
     <>
@@ -113,7 +155,7 @@ export default function Jobs() {
           }
         />
 
-        <div className="flex flex-col gap-3 rounded-[18px] border border-[var(--color-line)] bg-white/80 p-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <div className="flex flex-col gap-3 rounded-[18px] border border-[var(--color-line)] bg-[var(--color-surface)]/80 p-3 sm:flex-row sm:flex-wrap sm:items-center">
           <Input
             type="text"
             placeholder="Search jobs…"
@@ -127,7 +169,7 @@ export default function Jobs() {
             className="sm:max-w-[200px]"
           >
             <option value="">All departments</option>
-            {departments.map((department) => (
+            {filterOptions.departments.map((department) => (
               <option key={department} value={department}>
                 {department}
               </option>
@@ -139,7 +181,7 @@ export default function Jobs() {
             className="sm:max-w-[180px]"
           >
             <option value="">All types</option>
-            {employmentTypes.map((type) => (
+            {filterOptions.employmentTypes.map((type) => (
               <option key={type} value={type}>
                 {type}
               </option>
@@ -147,7 +189,18 @@ export default function Jobs() {
           </Select>
         </div>
 
-        <TableShell>
+        <TableShell
+          footer={
+            <Pagination
+              page={page}
+              pages={pages}
+              total={total}
+              pageSize={PAGE_SIZE}
+              onChange={setPage}
+              disabled={loading}
+            />
+          }
+        >
           <Table>
             <THead>
               <tr>
@@ -160,7 +213,7 @@ export default function Jobs() {
             <TBody>
               {loading ? (
                 <TableLoadingRow colSpan={4} label="Loading jobs…" />
-              ) : filteredJobs.length === 0 ? (
+              ) : jobs.length === 0 ? (
                 <Tr>
                   <Td
                     colSpan={4}
@@ -170,7 +223,7 @@ export default function Jobs() {
                   </Td>
                 </Tr>
               ) : (
-                filteredJobs.map((job) => (
+                jobs.map((job) => (
                   <Tr key={job.id} onClick={() => setSelectedJob(job)}>
                     <Td className="font-semibold">{job.title}</Td>
                     <Td className="text-[var(--color-ink-secondary)]">
@@ -180,7 +233,9 @@ export default function Jobs() {
                       {job.employment_type}
                     </Td>
                     <Td className="text-[var(--color-ink-secondary)]">
-                      {job.experience_required} years
+                      {job.experience_required != null
+                        ? `${job.experience_required} years`
+                        : "—"}
                     </Td>
                   </Tr>
                 ))
@@ -197,6 +252,7 @@ export default function Jobs() {
           setEditingJob(job);
           setShowEditDrawer(true);
         }}
+        onDelete={handleDeleteJob}
       />
       <CreateJobDrawer
         isOpen={showCreateDrawer}

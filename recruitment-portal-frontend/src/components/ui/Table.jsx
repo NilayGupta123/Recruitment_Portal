@@ -1,10 +1,11 @@
 import { cn } from "./cn";
 import Card from "./Card";
 
-export function TableShell({ children, className }) {
+export function TableShell({ children, className, footer }) {
   return (
     <Card className={cn("overflow-hidden", className)}>
       <div className="overflow-x-auto">{children}</div>
+      {footer}
     </Card>
   );
 }

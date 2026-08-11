@@ -12,12 +12,12 @@ from app.db.base import Base
 
 class Applicant(Base):
     __tablename__ = "applicants"
-    # A particular applicant can apply to a particular job only once.
+    # A particular applicant can apply to a particular campaign posting (campaign+job pairing) only once.
     __table_args__ = (
         UniqueConstraint(
-            "job_id",
+            "mapping_id",
             "applicant_id",
-            name="uq_job_applicant"
+            name="uq_mapping_applicant"
         ),
     )
 
@@ -26,9 +26,9 @@ class Applicant(Base):
         index=True
     )
 
-    job_id: Mapped[int] = mapped_column(
-        ForeignKey("jobs.id"),
-        nullable=False,
+    mapping_id: Mapped[int | None] = mapped_column(
+        ForeignKey("campaign_job_mapping.id", ondelete="SET NULL"),
+        nullable=True,
         index=True
     )
 

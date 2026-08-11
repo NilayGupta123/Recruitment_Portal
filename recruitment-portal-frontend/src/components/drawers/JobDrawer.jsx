@@ -3,8 +3,10 @@ import { Sparkles } from "lucide-react";
 import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import { generateScreeningQuestions } from "../../api/aiApi";
+import { deleteJob } from "../../api/jobsApi";
 import Drawer from "../ui/Drawer";
 import Button from "../ui/Button";
+import ConfirmDialog from "../ui/ConfirmDialog";
 import ScreeningQuestionsModal from "../ai/ScreeningQuestionsModal";
 
 function Detail({ label, children }) {
@@ -20,16 +22,20 @@ function Detail({ label, children }) {
   );
 }
 
-export default function JobDrawer({ job, onClose, onEdit }) {
+export default function JobDrawer({ job, onClose, onEdit, onDelete }) {
   const { user } = useAuth();
   const [questions, setQuestions] = useState([]);
   const [loadingQuestions, setLoadingQuestions] = useState(false);
   const [showQuestionsModal, setShowQuestionsModal] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     setQuestions([]);
     setShowQuestionsModal(false);
     setLoadingQuestions(false);
+    setConfirmOpen(false);
+    setDeleting(false);
   }, [job?.id]);
 
   if (!job) return null;
@@ -66,6 +72,27 @@ export default function JobDrawer({ job, onClose, onEdit }) {
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      setDeleting(true);
+      if (onDelete) {
+        await onDelete(job);
+      } else {
+        await deleteJob(job.id);
+        toast.success("Job deleted");
+      }
+      setConfirmOpen(false);
+      onClose?.();
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error?.response?.data?.detail || "Failed to delete job."
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const canManage = user?.user_type === "ADMIN" || user?.user_type === "HR";
 
   return (
@@ -82,7 +109,7 @@ export default function JobDrawer({ job, onClose, onEdit }) {
                 variant="secondary"
                 className="w-full"
                 onClick={handleGenerateQuestions}
-                disabled={loadingQuestions}
+                disabled={loadingQuestions || deleting}
               >
                 <Sparkles size={16} />
                 {loadingQuestions
@@ -91,9 +118,24 @@ export default function JobDrawer({ job, onClose, onEdit }) {
                     ? "Regenerate screening questions"
                     : "Generate screening questions"}
               </Button>
-              <Button className="w-full" onClick={() => onEdit(job)}>
-                Edit job
-              </Button>
+              <div className="grid grid-cols-2 gap-2.5">
+                <Button
+                  variant="outline"
+                  className="w-full"
+                  onClick={() => onEdit(job)}
+                  disabled={deleting}
+                >
+                  Edit job
+                </Button>
+                <Button
+                  variant="danger"
+                  className="w-full"
+                  onClick={() => setConfirmOpen(true)}
+                  disabled={deleting}
+                >
+                  Delete job
+                </Button>
+              </div>
             </div>
           ) : null
         }
@@ -136,6 +178,17 @@ export default function JobDrawer({ job, onClose, onEdit }) {
         questions={questions}
         loading={loadingQuestions}
         onRegenerate={handleGenerateQuestions}
+      />
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => !deleting && setConfirmOpen(false)}
+        onConfirm={handleDelete}
+        loading={deleting}
+        title="Delete this job?"
+        message={`“${job.title}” will be permanently removed. Applicants are kept, but their link to this posting is cleared. Jobs in a published campaign cannot be deleted.`}
+        confirmLabel="Delete job"
+        tone="danger"
       />
     </>
   );

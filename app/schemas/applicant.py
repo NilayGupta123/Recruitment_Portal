@@ -11,13 +11,13 @@ class BaseApplicant(BaseModel):
 
 
 class CreateApplicant(BaseApplicant, CreateUser, CreateApplicantDetail):
-    job_id: int
+    mapping_id: int
 
 
 # Minimal read model that matches the applicants table only
 class ReadApplicantCore(BaseApplicant):
     id: int
-    job_id: int
+    mapping_id: int | None = None
     applicant_id: int
     applied_at: datetime
     updated_at: datetime | None = None
@@ -31,7 +31,7 @@ class ReadApplicantCore(BaseApplicant):
 # can be ambiguous; prefer nested models if you plan to expose joined data.
 class ReadApplicant(BaseApplicant, ReadUser, ReadApplicantDetail):
     id: int
-    job_id: int
+    mapping_id: int | None = None
     applicant_id: int
     applied_at: datetime
     updated_at: datetime | None = None
@@ -65,6 +65,8 @@ class ReadApplicantList(BaseModel):
 class ReadApplicantProfile(BaseModel):
     application_id: int
     job_id: int
+    campaign_id: int
+    campaign_title: str
     status: str | None = None
     applied_at: datetime
 
@@ -73,8 +75,11 @@ class ReadApplicantProfile(BaseModel):
 
 class MyApplication(BaseModel):
     id: int
+    mapping_id: int
     job_id: int
     job_title: str
+    campaign_id: int
+    campaign_title: str
     status: str
     applied_at: datetime
 

@@ -14,7 +14,7 @@ export default function JobHero({ job }) {
   const stats = [
     { icon: Building2, label: "Department", value: job.department },
     { icon: Briefcase, label: "Job type", value: job.employment_type },
-    { icon: MapPin, label: "Location", value: job.location || "India" },
+    { icon: MapPin, label: "Location", value: job.campaign_location || "India" },
     {
       icon: Clock3,
       label: "Experience",

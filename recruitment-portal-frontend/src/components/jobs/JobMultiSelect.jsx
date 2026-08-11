@@ -14,8 +14,8 @@ export default function JobMultiSelect({ selectedJobs, setSelectedJobs }) {
   const loadJobs = async () => {
     try {
       setLoading(true);
-      const response = await getJobs();
-      setJobs(response.data);
+      const response = await getJobs({ page: 1, page_size: 200 });
+      setJobs(response.data?.items || response.data || []);
     } catch (error) {
       console.error(error);
     } finally {

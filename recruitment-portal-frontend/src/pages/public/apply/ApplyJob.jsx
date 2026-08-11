@@ -90,7 +90,7 @@ export default function ApplyJob() {
       }
 
       await applyJob({
-        job_id: Number(id),
+        mapping_id: Number(id),
         full_name: formData.full_name,
         email: formData.email,
         phone_number: formData.phone_number,

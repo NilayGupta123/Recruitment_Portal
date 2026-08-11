@@ -6,7 +6,7 @@ import JobDescription from "../../../components/public/job-details/JobDescriptio
 import JobSidebar from "../../../components/public/job-details/JobSidebar";
 import HiringProcess from "../../../components/public/job-details/HiringProcess";
 import CompanyBenefits from "../../../components/public/job-details/CompanyBenefits";
-import { getPublicJob } from "../../../api/publicApi";
+import { getPublicPosting } from "../../../api/publicApi";
 
 export default function JobDetails() {
   const { id } = useParams();
@@ -19,7 +19,7 @@ export default function JobDetails() {
 
   const loadJob = async () => {
     try {
-      const res = await getPublicJob(id);
+      const res = await getPublicPosting(id);
       setJob(res.data);
     } catch (err) {
       console.error(err);

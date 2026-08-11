@@ -72,7 +72,7 @@ export default function ApplicantCampaignDrawer({
                 <div className="space-y-2.5">
                   {jobs.map((job) => (
                     <button
-                      key={job.id}
+                      key={job.mapping_id}
                       type="button"
                       onClick={() => setSelectedJob(job)}
                       className="pressable flex w-full items-center justify-between gap-3 rounded-[16px] border border-[var(--color-line)] bg-[var(--color-surface)] px-4 py-4 text-left transition hover:bg-[var(--color-fill)]"
@@ -100,7 +100,7 @@ export default function ApplicantCampaignDrawer({
 
       <ApplicantJobDrawer
         job={selectedJob}
-        application={selectedJob ? applications[selectedJob.id] : null}
+        application={selectedJob ? applications[selectedJob.mapping_id] : null}
         onClose={() => setSelectedJob(null)}
         onApplied={() => {}}
       />

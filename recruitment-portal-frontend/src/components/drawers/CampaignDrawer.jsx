@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { ChevronRight } from "lucide-react";
+import { toast } from "react-toastify";
 import { useAuth } from "../../context/AuthContext";
 import JobDrawer from "./JobDrawer";
 import { getCampaignJobs } from "../../api/campaignJobApi";
+import { deleteCampaign } from "../../api/campaignsApi";
+import { deleteJob } from "../../api/jobsApi";
 import Drawer from "../ui/Drawer";
 import Button from "../ui/Button";
 import Badge from "../ui/Badge";
+import ConfirmDialog from "../ui/ConfirmDialog";
 
 function Detail({ label, children }) {
   return (
@@ -20,15 +24,26 @@ function Detail({ label, children }) {
   );
 }
 
-export default function CampaignDrawer({ campaign, onClose, onEdit, onEditJob }) {
+export default function CampaignDrawer({
+  campaign,
+  onClose,
+  onEdit,
+  onEditJob,
+  onDelete,
+}) {
   const { user } = useAuth();
   const [jobs, setJobs] = useState([]);
   const [selectedJob, setSelectedJob] = useState(null);
   const [loading, setLoading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   useEffect(() => {
     if (campaign) {
       loadCampaignJobs();
+      setConfirmOpen(false);
+      setDeleting(false);
+      setSelectedJob(null);
     }
   }, [campaign]);
 
@@ -44,7 +59,32 @@ export default function CampaignDrawer({ campaign, onClose, onEdit, onEditJob })
     }
   };
 
+  const handleDelete = async () => {
+    try {
+      setDeleting(true);
+      if (onDelete) {
+        await onDelete(campaign);
+      } else {
+        await deleteCampaign(campaign.id);
+        toast.success("Campaign deleted");
+      }
+      setConfirmOpen(false);
+      onClose?.();
+    } catch (error) {
+      console.error(error);
+      toast.error(
+        error?.response?.data?.detail || "Failed to delete campaign."
+      );
+    } finally {
+      setDeleting(false);
+    }
+  };
+
   const canManage = user?.user_type === "ADMIN" || user?.user_type === "HR";
+  const canDelete =
+    canManage &&
+    campaign &&
+    (campaign.status === "DRAFT" || campaign.status === "CLOSED");
 
   return (
     <>
@@ -56,9 +96,29 @@ export default function CampaignDrawer({ campaign, onClose, onEdit, onEditJob })
         width="lg"
         footer={
           canManage ? (
-            <Button className="w-full" onClick={() => onEdit(campaign)}>
-              Edit campaign
-            </Button>
+            <div className="grid grid-cols-2 gap-2.5">
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => onEdit(campaign)}
+                disabled={deleting}
+              >
+                Edit campaign
+              </Button>
+              <Button
+                variant="danger"
+                className="w-full"
+                onClick={() => setConfirmOpen(true)}
+                disabled={deleting || !canDelete}
+                title={
+                  canDelete
+                    ? undefined
+                    : "Close or draft the campaign before deleting"
+                }
+              >
+                Delete campaign
+              </Button>
+            </div>
           ) : null
         }
       >
@@ -73,7 +133,7 @@ export default function CampaignDrawer({ campaign, onClose, onEdit, onEditJob })
               <Detail label="Start date">{campaign.start_date || "N/A"}</Detail>
               <Detail label="End date">{campaign.end_date || "N/A"}</Detail>
             </div>
-            <div className="rounded-[16px] border border-[var(--color-line)] bg-white px-4 py-4">
+            <div className="rounded-[16px] border border-[var(--color-line)] bg-[var(--color-surface)] px-4 py-4">
               <p className="text-[12px] font-semibold uppercase tracking-[0.08em] text-[var(--color-ink-tertiary)]">
                 Description
               </p>
@@ -104,7 +164,7 @@ export default function CampaignDrawer({ campaign, onClose, onEdit, onEditJob })
                 <div className="space-y-2.5">
                   {jobs.map((job) => (
                     <button
-                      key={job.id}
+                      key={job.mapping_id || job.id || job.job_id}
                       type="button"
                       onClick={() => setSelectedJob(job)}
                       className="pressable flex w-full items-center justify-between gap-3 rounded-[16px] border border-[var(--color-line)] bg-[var(--color-surface)] px-4 py-4 text-left transition hover:bg-[var(--color-fill)]"
@@ -137,6 +197,27 @@ export default function CampaignDrawer({ campaign, onClose, onEdit, onEditJob })
           setSelectedJob(null);
           onEditJob(job);
         }}
+        onDelete={async (job) => {
+          await deleteJob(job.id || job.job_id);
+          toast.success("Job deleted successfully");
+          setSelectedJob(null);
+          await loadCampaignJobs();
+        }}
+      />
+
+      <ConfirmDialog
+        open={confirmOpen}
+        onClose={() => !deleting && setConfirmOpen(false)}
+        onConfirm={handleDelete}
+        loading={deleting}
+        title="Delete this campaign?"
+        message={
+          campaign
+            ? `“${campaign.title}” will be permanently removed along with its job mappings. Applicant records stay, but lose their link to this campaign.`
+            : ""
+        }
+        confirmLabel="Delete campaign"
+        tone="danger"
       />
     </>
   );

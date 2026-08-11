@@ -33,6 +33,7 @@ export default function ApplicantJobTable({ jobs, applications, onView }) {
         <THead>
           <tr>
             <Th>Job</Th>
+            <Th>Campaign</Th>
             <Th>Department</Th>
             <Th>Type</Th>
             <Th>Experience</Th>
@@ -41,9 +42,9 @@ export default function ApplicantJobTable({ jobs, applications, onView }) {
         </THead>
         <TBody>
           {jobs.map((job) => {
-            const application = applications[job.id];
+            const application = applications[job.mapping_id];
             return (
-              <Tr key={job.id} onClick={() => onView?.(job)}>
+              <Tr key={job.mapping_id} onClick={() => onView?.(job)}>
                 <Td>
                   <p className="font-semibold text-[var(--color-ink)]">
                     {job.title}
@@ -54,6 +55,7 @@ export default function ApplicantJobTable({ jobs, applications, onView }) {
                       : ""}
                   </p>
                 </Td>
+                <Td>{job.campaign_title || "—"}</Td>
                 <Td>{job.department || "—"}</Td>
                 <Td>{job.employment_type || "—"}</Td>
                 <Td>

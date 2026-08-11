@@ -1,10 +1,10 @@
 import API from "./axios";
 
-export const getJobs = () =>
-  API.get("/jobs/list");
+export const getJobs = (params = { page: 1, page_size: 200 }) =>
+  API.get("/jobs/list", { params });
 
-export const getCampaigns = () =>
-  API.get("/campaigns/list");
+export const getCampaigns = (params = { page: 1, page_size: 200 }) =>
+  API.get("/campaigns/list", { params });
 
 export const getApplicants = () =>
   API.get("/applicants/list");

@@ -1,7 +1,7 @@
 import API from "./axios";
 
-export const getApplicantsByJob = (jobId) =>
-  API.get(`/jobs/${jobId}/applicants`);
+export const getCampaignJobApplicants = (campaignId, jobId) =>
+  API.get(`/campaigns/${campaignId}/jobs/${jobId}/applicants`);
 
 export const getApplicantProfile = (applicationId) =>
   API.get(`/applicants/profile/${applicationId}`);
@@ -27,14 +27,14 @@ export const applyForJob = (data) =>
 export const getMyProfile = () =>
   API.get("/auth/me");
 
-export const applyToJob = (jobId, file) => {
+export const applyToJob = (mappingId, file) => {
   const formData = new FormData();
 
   if (file) {
     formData.append("file", file);
   }
 
-  return API.post(`/applicants/apply/${jobId}`, formData, {
+  return API.post(`/applicants/apply/${mappingId}`, formData, {
     headers: {
       "Content-Type": "multipart/form-data",
     },

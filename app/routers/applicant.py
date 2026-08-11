@@ -19,6 +19,7 @@ from app.routers.auth import get_current_user
 
 from app.schemas.applicant import CreateApplicant, ReadApplicantCore, UpdateApplicant, PartialUpdateApplicant, ReadApplicantProfile, MyApplication
 from app.models.job import Job
+from app.models.campaign import Campaign, CampaignJobMapping
 from app.services.storage import S3StorageManager
 
 router = APIRouter(prefix="/applicants", tags=["applicants"])
@@ -80,7 +81,7 @@ async def create_applicant(payload: CreateApplicant, db: AsyncSession = Depends(
         applicant_user.phone_number = payload.phone_number
     
     applicant = Applicant(
-        job_id=payload.job_id,
+        mapping_id=payload.mapping_id,
         applicant_id=applicant_user.id,
         status=payload.status
     )
@@ -206,9 +207,20 @@ async def get_applicant_profile(application_id: int, db: AsyncSession = Depends(
         file_result = await db.execute(select(FileRecord).where(FileRecord.id == details.resume_file))
         file_record = file_result.scalar_one_or_none()
 
+    posting_result = await db.execute(
+        select(Job.id, Campaign.id, Campaign.title)
+        .select_from(CampaignJobMapping)
+        .join(Job, CampaignJobMapping.job_id == Job.id)
+        .join(Campaign, CampaignJobMapping.campaign_id == Campaign.id)
+        .where(CampaignJobMapping.id == application.mapping_id)
+    )
+    job_id, campaign_id, campaign_title = posting_result.one()
+
     return {
         "application_id": application.id,
-        "job_id": application.job_id,
+        "job_id": job_id,
+        "campaign_id": campaign_id,
+        "campaign_title": campaign_title,
         "status": application.status,
         "applied_at": application.applied_at,
         "user": user,
@@ -250,22 +262,32 @@ async def get_uploaded_file(file_id: int, db: AsyncSession = Depends(get_db)):
 
 @router.get("/my", response_model=list[MyApplication])
 async def get_my_applications(db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_user)):
-    result = await db.execute(select(Applicant, Job).join(Job, Applicant.job_id == Job.id).where(Applicant.applicant_id == current_user.id).order_by(Applicant.applied_at.desc()))
+    result = await db.execute(
+        select(Applicant, Job, Campaign)
+        .join(CampaignJobMapping, Applicant.mapping_id == CampaignJobMapping.id)
+        .join(Job, CampaignJobMapping.job_id == Job.id)
+        .join(Campaign, CampaignJobMapping.campaign_id == Campaign.id)
+        .where(Applicant.applicant_id == current_user.id)
+        .order_by(Applicant.applied_at.desc())
+    )
     rows = result.all()
     return [
         {
             "id": application.id,
+            "mapping_id": application.mapping_id,
             "job_id": job.id,
             "job_title": job.title,
+            "campaign_id": campaign.id,
+            "campaign_title": campaign.title,
             "status": application.status,
             "applied_at": application.applied_at,
         }
-        for application, job in rows
+        for application, job, campaign in rows
     ]
 
-@router.post("/apply/{job_id}")
+@router.post("/apply/{mapping_id}")
 async def apply_to_job(
-    job_id: int,
+    mapping_id: int,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(get_current_user),
     file: UploadFile | None = FastAPIFile(default=None),
@@ -277,22 +299,22 @@ async def apply_to_job(
             detail="Only applicants can apply for jobs.",
         )
 
-    # Check job exists
+    # Check the posting (campaign+job pairing) exists
     result = await db.execute(
-        select(Job).where(Job.id == job_id)
+        select(CampaignJobMapping).where(CampaignJobMapping.id == mapping_id)
     )
-    job = result.scalar_one_or_none()
+    mapping = result.scalar_one_or_none()
 
-    if job is None:
+    if mapping is None:
         raise HTTPException(
             status_code=404,
-            detail="Job not found.",
+            detail="Posting not found.",
         )
 
     # Prevent duplicate applications
     result = await db.execute(
         select(Applicant).where(
-            Applicant.job_id == job_id,
+            Applicant.mapping_id == mapping_id,
             Applicant.applicant_id == current_user.id,
         )
     )
@@ -306,7 +328,7 @@ async def apply_to_job(
         )
 
     application = Applicant(
-        job_id=job_id,
+        mapping_id=mapping_id,
         applicant_id=current_user.id,
         status="Applied",
     )

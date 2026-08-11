@@ -1,24 +1,24 @@
 import { useEffect, useMemo, useState } from "react";
 import JobCard from "./JobCard";
-import { getPublicJobs } from "../../api/publicApi";
+import { getPublicPostings } from "../../api/publicApi";
 import { Field, Input, Label, Select } from "../ui/Input";
 import EmptyState from "../ui/EmptyState";
 
 export default function JobSection() {
-  const [jobs, setJobs] = useState([]);
+  const [postings, setPostings] = useState([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("");
   const [employmentType, setEmploymentType] = useState("");
 
   useEffect(() => {
-    loadJobs();
+    loadPostings();
   }, []);
 
-  const loadJobs = async () => {
+  const loadPostings = async () => {
     try {
-      const res = await getPublicJobs();
-      setJobs(res.data);
+      const res = await getPublicPostings();
+      setPostings(res.data);
     } catch (err) {
       console.error(err);
     } finally {
@@ -27,7 +27,7 @@ export default function JobSection() {
   };
 
   const filteredJobs = useMemo(() => {
-    return jobs.filter((job) => {
+    return postings.filter((job) => {
       const matchesSearch =
         !search || job.title?.toLowerCase().includes(search.toLowerCase());
       const matchesDepartment = !department || job.department === department;
@@ -35,11 +35,11 @@ export default function JobSection() {
         !employmentType || job.employment_type === employmentType;
       return matchesSearch && matchesDepartment && matchesEmployment;
     });
-  }, [jobs, search, department, employmentType]);
+  }, [postings, search, department, employmentType]);
 
-  const departments = [...new Set(jobs.map((j) => j.department).filter(Boolean))];
+  const departments = [...new Set(postings.map((j) => j.department).filter(Boolean))];
   const employmentTypes = [
-    ...new Set(jobs.map((j) => j.employment_type).filter(Boolean)),
+    ...new Set(postings.map((j) => j.employment_type).filter(Boolean)),
   ];
 
   return (
@@ -121,7 +121,7 @@ export default function JobSection() {
               ) : (
                 <div className="grid gap-5 md:grid-cols-2">
                   {filteredJobs.map((job) => (
-                    <JobCard key={job.id} job={job} />
+                    <JobCard key={job.mapping_id} job={job} />
                   ))}
                 </div>
               )}

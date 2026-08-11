@@ -15,10 +15,10 @@ export default function JobList({ jobs, selectedJob, onSelect }) {
           </p>
         ) : (
           jobs.map((job) => {
-            const active = selectedJob?.id === job.id;
+            const active = selectedJob?.mapping_id === job.mapping_id;
             return (
               <button
-                key={job.id}
+                key={job.mapping_id}
                 type="button"
                 onClick={() => onSelect(job)}
                 className={`w-full border-b border-[var(--color-line)] px-4 py-3.5 text-left transition ${
