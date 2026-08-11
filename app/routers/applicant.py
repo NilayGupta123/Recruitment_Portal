@@ -21,6 +21,7 @@ from app.schemas.applicant import CreateApplicant, ReadApplicantCore, UpdateAppl
 from app.models.job import Job
 from app.models.campaign import Campaign, CampaignJobMapping
 from app.services.storage import S3StorageManager
+from app.tasks.score_application import enqueue_score_application
 
 router = APIRouter(prefix="/applicants", tags=["applicants"])
 
@@ -83,7 +84,8 @@ async def create_applicant(payload: CreateApplicant, db: AsyncSession = Depends(
     applicant = Applicant(
         mapping_id=payload.mapping_id,
         applicant_id=applicant_user.id,
-        status=payload.status
+        status=payload.status,
+        ai_score_status="pending",
     )
     db.add(applicant)
 
@@ -137,6 +139,7 @@ async def create_applicant(payload: CreateApplicant, db: AsyncSession = Depends(
         await db.rollback()
         raise HTTPException(status_code=400, detail="You have already applied for this job")
     await db.refresh(applicant)
+    enqueue_score_application(applicant.id)
     return applicant
 
 
@@ -223,6 +226,16 @@ async def get_applicant_profile(application_id: int, db: AsyncSession = Depends(
         "campaign_title": campaign_title,
         "status": application.status,
         "applied_at": application.applied_at,
+        "ai_score": float(application.ai_score)
+        if application.ai_score is not None
+        else None,
+        "ai_decision": application.ai_decision,
+        "ai_summary": application.ai_summary,
+        "ai_praise_html": application.ai_praise_html,
+        "ai_critique_html": application.ai_critique_html,
+        "ai_score_status": application.ai_score_status,
+        "ai_score_error": application.ai_score_error,
+        "ai_scored_at": application.ai_scored_at,
         "user": user,
         "details": build_resume_detail_payload(details, file_record),
     }
@@ -331,6 +344,7 @@ async def apply_to_job(
         mapping_id=mapping_id,
         applicant_id=current_user.id,
         status="Applied",
+        ai_score_status="pending",
     )
 
     db.add(application)
@@ -368,6 +382,7 @@ async def apply_to_job(
 
     await db.commit()
     await db.refresh(application)
+    enqueue_score_application(application.id)
 
     return {
         "message": "Application submitted successfully.",

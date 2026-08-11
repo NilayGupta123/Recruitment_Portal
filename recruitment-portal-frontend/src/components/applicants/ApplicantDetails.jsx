@@ -5,7 +5,7 @@ import Button from "../ui/Button";
 import Badge from "../ui/Badge";
 import { Field, Label, Select } from "../ui/Input";
 import { resolveFileUrl } from "../../utils/fileUrl";
-import { getDummyAiScore } from "./aiScoreDummy";
+import { buildScoreData } from "./aiScoreUtils";
 import AiScoreCard from "./AiScoreCard";
 import AiScoreModal from "./AiScoreModal";
 
@@ -99,27 +99,12 @@ export default function ApplicantDetails({ profile, onStatusUpdate }) {
     }
   }, [profile]);
 
-  const scoreData = useMemo(() => {
-    if (!profile) return null;
-    if (profile.ai_score != null || profile.aiScore != null) {
-      return {
-        score: profile.ai_score ?? profile.aiScore,
-        decision: profile.ai_decision ?? profile.aiDecision ?? "REVIEW",
-        summary: profile.ai_summary ?? profile.aiSummary ?? "",
-        praiseHtml:
-          profile.ai_praise_html ??
-          profile.praiseHtml ??
-          profile.ai?.praiseHtml ??
-          "",
-        critiqueHtml:
-          profile.ai_critique_html ??
-          profile.critiqueHtml ??
-          profile.ai?.critiqueHtml ??
-          "",
-      };
-    }
-    return getDummyAiScore(profile);
-  }, [profile]);
+  const scoreStatus =
+    profile?.ai_score_status || profile?.aiScoreStatus || null;
+  const scoreData = useMemo(
+    () => buildScoreData(profile),
+    [profile]
+  );
 
   if (!profile) {
     return (
@@ -167,6 +152,7 @@ export default function ApplicantDetails({ profile, onStatusUpdate }) {
         <div className="custom-scrollbar flex-1 space-y-3 overflow-y-auto p-3.5">
           <AiScoreCard
             scoreData={scoreData}
+            status={scoreStatus}
             onOpen={() => setScoreOpen(true)}
           />
 

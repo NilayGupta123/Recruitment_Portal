@@ -175,10 +175,16 @@ async def apply_job(payload: PublicApplicationCreate, db: AsyncSession = Depends
         mapping_id=payload.mapping_id,
         applicant_id=user.id,
         status="Applied",
+        ai_score_status="pending",
     )
     db.add(application)
     await db.commit()
     await db.refresh(application)
+
+    from app.tasks.score_application import enqueue_score_application
+
+    enqueue_score_application(application.id)
+
     return PublicApplicationResponse(
         success=True,
         application_id=application.id,

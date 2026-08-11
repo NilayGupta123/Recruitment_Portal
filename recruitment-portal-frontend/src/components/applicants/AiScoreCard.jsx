@@ -1,6 +1,6 @@
-import { Sparkles, ChevronRight } from "lucide-react";
+import { Sparkles, ChevronRight, Loader2, AlertCircle } from "lucide-react";
 import { cn } from "../ui/cn";
-import { scoreTone } from "./aiScoreDummy";
+import { scoreTone, scoreStatusLabel } from "./aiScoreUtils";
 
 const toneDot = {
   high: "bg-[var(--color-success)]",
@@ -14,8 +14,72 @@ const toneText = {
   low: "text-[var(--badge-danger-fg)]",
 };
 
-export default function AiScoreCard({ scoreData, onOpen }) {
-  if (!scoreData) return null;
+export default function AiScoreCard({ scoreData, status, onOpen }) {
+  const scoring =
+    status === "pending" || status === "processing";
+  const failed = status === "failed";
+  const ready = Boolean(scoreData) && (!status || status === "done");
+
+  if (scoring) {
+    return (
+      <div
+        className={cn(
+          "flex w-full items-center gap-3 rounded-[14px] border border-[var(--color-line)]",
+          "bg-[var(--color-surface-muted)] px-3 py-2.5"
+        )}
+      >
+        <div className="flex h-9 min-w-[3.25rem] shrink-0 items-center justify-center rounded-lg bg-[var(--color-surface)] ring-1 ring-inset ring-[var(--color-line)]">
+          <Loader2
+            size={16}
+            className="animate-spin text-[var(--color-brand)]"
+          />
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-1.5">
+            <Sparkles size={12} className="text-[var(--color-ink-tertiary)]" />
+            <span className="truncate text-[12px] font-semibold tracking-[-0.01em] text-[var(--color-ink)]">
+              {scoreStatusLabel(status)}
+            </span>
+          </div>
+          <p className="mt-0.5 truncate text-[11px] text-[var(--color-ink-tertiary)]">
+            AI is reviewing the resume
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (failed || !ready) {
+    return (
+      <div
+        className={cn(
+          "flex w-full items-center gap-3 rounded-[14px] border border-[var(--color-line)]",
+          "bg-[var(--color-surface-muted)] px-3 py-2.5"
+        )}
+      >
+        <div className="flex h-9 min-w-[3.25rem] shrink-0 items-center justify-center rounded-lg bg-[var(--color-surface)] ring-1 ring-inset ring-[var(--color-line)]">
+          <AlertCircle
+            size={16}
+            className={
+              failed
+                ? "text-[var(--color-danger)]"
+                : "text-[var(--color-ink-tertiary)]"
+            }
+          />
+        </div>
+        <div className="min-w-0 flex-1">
+          <span className="truncate text-[12px] font-semibold tracking-[-0.01em] text-[var(--color-ink)]">
+            {scoreStatusLabel(failed ? "failed" : status)}
+          </span>
+          <p className="mt-0.5 truncate text-[11px] text-[var(--color-ink-tertiary)]">
+            {failed
+              ? "Scoring could not be completed"
+              : "Score appears after apply"}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   const score = Number(scoreData.score) || 0;
   const tone = scoreTone(score);

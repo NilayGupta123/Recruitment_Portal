@@ -1,7 +1,7 @@
 import { Sparkles, ThumbsUp, MessageSquareWarning } from "lucide-react";
 import Modal from "../ui/Modal";
 import Badge from "../ui/Badge";
-import { decisionLabel, scoreTone } from "./aiScoreDummy";
+import { decisionLabel, scoreTone } from "./aiScoreUtils";
 
 function HtmlBlock({ html }) {
   if (!html) {

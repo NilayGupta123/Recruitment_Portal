@@ -87,6 +87,30 @@ export default function Applicants() {
     }
   };
 
+  // Poll while Celery is scoring so the real AI score appears without refresh.
+  useEffect(() => {
+    const status = profile?.ai_score_status;
+    const applicationId =
+      profile?.application_id || selectedApplicant?.application_id;
+    if (
+      !applicationId ||
+      (status !== "pending" && status !== "processing")
+    ) {
+      return undefined;
+    }
+
+    const id = setInterval(async () => {
+      try {
+        const response = await getApplicantProfile(applicationId);
+        setProfile(response.data);
+      } catch (error) {
+        console.error(error);
+      }
+    }, 4000);
+
+    return () => clearInterval(id);
+  }, [profile?.ai_score_status, profile?.application_id, selectedApplicant]);
+
   const handleStatusUpdate = async (status) => {
     try {
       await updateApplicantStatus(selectedApplicant.application_id, {

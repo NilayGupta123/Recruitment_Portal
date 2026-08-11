@@ -4,7 +4,7 @@ from datetime import date, datetime
 from decimal import Decimal
 
 from sqlalchemy import Date, DateTime, ForeignKey, String, Text, Integer, Numeric, UniqueConstraint, func
-
+from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.db.base import Base
@@ -54,6 +54,17 @@ class Applicant(Base):
         onupdate=func.now(),
         nullable=True
     )
+
+    # AI resume scoring (Celery task fills these after apply)
+    ai_score: Mapped[Decimal | None] = mapped_column(Numeric(4, 1), nullable=True)
+    ai_decision: Mapped[str | None] = mapped_column(String(32), nullable=True)
+    ai_summary: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ai_praise_html: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ai_critique_html: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ai_score_status: Mapped[str | None] = mapped_column(String(20), nullable=True, index=True)
+    ai_score_error: Mapped[str | None] = mapped_column(Text, nullable=True)
+    ai_scored_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    ai_score_raw: Mapped[dict | None] = mapped_column(JSONB, nullable=True)
 
 class ApplicantDetail(Base):
     __tablename__ = "applicant_details"

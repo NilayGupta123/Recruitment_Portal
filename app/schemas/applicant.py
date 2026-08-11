@@ -70,6 +70,16 @@ class ReadApplicantProfile(BaseModel):
     status: str | None = None
     applied_at: datetime
 
+    # AI scoring (filled async by Celery after apply)
+    ai_score: float | None = None
+    ai_decision: str | None = None
+    ai_summary: str | None = None
+    ai_praise_html: str | None = None
+    ai_critique_html: str | None = None
+    ai_score_status: str | None = None
+    ai_score_error: str | None = None
+    ai_scored_at: datetime | None = None
+
     user: ReadUser
     details: ReadApplicantDetail
 

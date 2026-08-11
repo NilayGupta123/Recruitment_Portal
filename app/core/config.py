@@ -23,6 +23,11 @@ class Settings(BaseSettings):
     upload_dir: str = "recruitment_portal"
 
     gemini_api_key: str = ""
+    gemini_model: str = "gemini-flash-latest"
+
+    # Celery / Redis
+    celery_broker_url: str = "redis://localhost:6379/0"
+    celery_result_backend: str = "redis://localhost:6379/1"
 
 
 settings = Settings()  # type: ignore[misc]
