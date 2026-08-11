@@ -241,22 +241,41 @@ async def update_campaign_jobs(campaign_id: int, payload: CampaignJobsRequest, d
     if campaign.hosted_by != current_user.id:
         raise HTTPException(status_code=403, detail="Not authorized")
 
-    await db.execute(delete(CampaignJobMapping).where(CampaignJobMapping.campaign_id == campaign_id))
+    result = await db.execute(
+        select(CampaignJobMapping).where(CampaignJobMapping.campaign_id == campaign_id)
+    )
+    existing_by_job_id = {m.job_id: m for m in result.scalars().all()}
+    incoming_job_ids = {job.job_id for job in payload.jobs}
+
+    stale_job_ids = existing_by_job_id.keys() - incoming_job_ids
+    if stale_job_ids:
+        await db.execute(
+            delete(CampaignJobMapping).where(
+                CampaignJobMapping.campaign_id == campaign_id,
+                CampaignJobMapping.job_id.in_(stale_job_ids),
+            )
+        )
 
     mappings = []
 
     for job in payload.jobs:
+        existing = existing_by_job_id.get(job.job_id)
+        if existing is not None:
+            existing.salary_min = job.salary_min
+            existing.salary_max = job.salary_max
+            existing.vacancies = job.vacancies
+            mappings.append(existing)
+        else:
+            mapping = CampaignJobMapping(
+                campaign_id=campaign_id,
+                job_id=job.job_id,
+                salary_min=job.salary_min,
+                salary_max=job.salary_max,
+                vacancies=job.vacancies,
+            )
+            db.add(mapping)
+            mappings.append(mapping)
 
-        mapping = CampaignJobMapping(
-            campaign_id=campaign_id,
-            job_id=job.job_id,
-            salary_min=job.salary_min,
-            salary_max=job.salary_max,
-            vacancies=job.vacancies,
-        )
-
-        db.add(mapping)
-        mappings.append(mapping)
     await db.commit()
     for mapping in mappings:
         await db.refresh(mapping)
