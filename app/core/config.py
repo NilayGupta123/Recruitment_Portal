@@ -28,6 +28,10 @@ class Settings(BaseSettings):
     # Celery / Redis
     celery_broker_url: str = "redis://localhost:6379/0"
     celery_result_backend: str = "redis://localhost:6379/1"
+    # Beat: re-queue unscored applications
+    score_retry_interval_minutes: int = 5
+    score_retry_batch_size: int = 25
+    score_processing_stale_minutes: int = 15
 
 
 settings = Settings()  # type: ignore[misc]
