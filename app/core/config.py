@@ -7,13 +7,23 @@ class Settings(BaseSettings):
     app_name: str = "Recruitment Portal API"
     debug: bool = True
 
+    # Comma-separated browser origins allowed by CORS.
+    # Example: http://localhost:5173,http://localhost:9501,http://13.233.244.58:9501
+    cors_origins: str = (
+        "http://localhost:5173,"
+        "http://127.0.0.1:5173,"
+        "http://localhost:9501,"
+        "http://127.0.0.1:9501,"
+        "http://13.233.244.58:9501"
+    )
+
     # Use async driver in URLs (postgresql+asyncpg://)
-    database_url: str = "postgresql+asyncpg://user:password@host:5432/dbname"
+    database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/postgres"
     # JWT settings
     # Override this via environment variable `JWT_SECRET_KEY` in production.
-    jwt_secret_key: str = "your-secret-key"
+    jwt_secret_key: str = "4f2b9e8c7d6a5b3c2f1e0d9c8b7a6f5e4d3c2b1a0f9e8d7c6b5a4f3e2d1c0b9"
     jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 60
+    access_token_expire_minutes: int = 60 * 24  # 24 hours
 
     s3_bucket_name: str = ""
     s3_region_name: str = "us-east-1"
@@ -28,6 +38,10 @@ class Settings(BaseSettings):
     # Celery / Redis
     celery_broker_url: str = "redis://localhost:6379/0"
     celery_result_backend: str = "redis://localhost:6379/1"
+    # Beat: re-queue unscored applications
+    score_retry_interval_minutes: int = 5
+    score_retry_batch_size: int = 25
+    score_processing_stale_minutes: int = 15
 
 
 settings = Settings()  # type: ignore[misc]

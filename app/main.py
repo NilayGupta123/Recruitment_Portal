@@ -25,11 +25,25 @@ logger.setLevel(logging.INFO)
 logging.getLogger("app").setLevel(logging.INFO)
 logging.basicConfig(level=logging.INFO, format="%(levelname)s:%(name)s:%(message)s")
 app = FastAPI(title=settings.app_name, debug=settings.debug)
+
+_cors_origins = [
+    origin.strip()
+    for origin in (settings.cors_origins or "").split(",")
+    if origin.strip()
+]
+# Dev convenience: if nothing configured, allow common local frontends.
+if not _cors_origins:
+    _cors_origins = [
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+        "http://localhost:9501",
+        "http://127.0.0.1:9501",
+        "http://13.233.244.58:9501"
+    ]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:5173",
-    ],
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
